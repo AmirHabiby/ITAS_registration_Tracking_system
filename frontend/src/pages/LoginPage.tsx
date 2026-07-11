@@ -1,5 +1,5 @@
 import { Button, Card, Form, Input, message, Typography } from "antd";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
@@ -7,7 +7,7 @@ export function LoginPage() {
   const navigate = useNavigate();
 
   if (user) {
-    void navigate(`/${user.role.toLowerCase()}/dashboard`);
+    return <Navigate to="/" replace />;
   }
 
   return (

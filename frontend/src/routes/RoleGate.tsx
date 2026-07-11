@@ -1,6 +1,13 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
+const roleHomePath: Record<string, string> = {
+  SYSTEM_ADMIN: "/admin/dashboard",
+  REPRESENTATIVE: "/representative/dashboard",
+  DELEGATOR: "/delegator/dashboard",
+  TRAINING_INSTITUTE: "/institute/dashboard",
+};
+
 export function RoleGate({
   children,
   roles,
@@ -15,7 +22,7 @@ export function RoleGate({
   }
 
   if (!roles.includes(user.role)) {
-    return <Navigate to={`/${user.role.toLowerCase()}/dashboard`} replace />;
+    return <Navigate to={roleHomePath[user.role] ?? "/login"} replace />;
   }
 
   return <>{children}</>;

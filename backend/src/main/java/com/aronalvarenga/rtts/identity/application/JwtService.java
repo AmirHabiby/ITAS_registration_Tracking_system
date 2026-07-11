@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,18 +29,23 @@ public class JwtService {
         Instant expiresAt = issuedAt.plus(jwtProperties.getAccessTokenTtl());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-            .issuer(jwtProperties.getIssuer())
-            .issuedAt(issuedAt)
-            .expiresAt(expiresAt)
-            .subject(userAccount.getUsername())
-            .claim("displayName", userAccount.getDisplayName())
-            .claim("role", userAccount.getRole().name())
-            .claim("roles", List.of(userAccount.getRole().name()))
-            .claim("enabled", userAccount.isEnabled())
-            .build();
+                .issuer(jwtProperties.getIssuer())
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .subject(userAccount.getUsername())
+                .claim("displayName", userAccount.getDisplayName())
+                .claim("role", userAccount.getRole().name())
+                .claim("roles", List.of(userAccount.getRole().name()))
+                .claim("enabled", userAccount.isEnabled())
+                .build();
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        return new LoginResponseDto(token, expiresAt.getEpochSecond() - issuedAt.getEpochSecond(), userAccount.getUsername(), userAccount.getRole().name(), userAccount.getDisplayName());
+        /* fix one: "failing to generate a JWT b/c the signing key/algorithm setup" */
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+        String token = jwtEncoder.encode(
+                JwtEncoderParameters.from(header, claims)).getTokenValue();
+
+        return new LoginResponseDto(token, expiresAt.getEpochSecond() - issuedAt.getEpochSecond(),
+                userAccount.getUsername(), userAccount.getRole().name(), userAccount.getDisplayName());
     }
 
     public SecretKeySpec secretKey() {
