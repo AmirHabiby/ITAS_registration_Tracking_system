@@ -15,7 +15,7 @@ export function DelegatorDashboardPage() {
 
   useEffect(() => {
     void apiClient
-      .get<Dashboard>("/api/delegator/dashboard")
+      .get<Dashboard>("/api/dashboard/delegator")
       .then((response) => setData(response.data));
   }, []);
 

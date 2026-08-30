@@ -15,14 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/institute/assessments")
+@RequestMapping("/api/assessments")
 @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','TRAINING_INSTITUTE')")
 public class AssessmentController {
 
     private final AssessmentService assessmentService;
+    private final com.aronalvarenga.rtts.identity.domain.UserAccountRepository userAccountRepository;
 
-    public AssessmentController(AssessmentService assessmentService) {
+    public AssessmentController(AssessmentService assessmentService, com.aronalvarenga.rtts.identity.domain.UserAccountRepository userAccountRepository) {
         this.assessmentService = assessmentService;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @PostMapping
@@ -31,12 +33,18 @@ public class AssessmentController {
     }
 
     @GetMapping
-    public List<AssessmentResponseDto> list() {
-        return assessmentService.listAll().stream().map(AssessmentMapper::toDto).toList();
+    public List<AssessmentResponseDto> list(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
+            .getId();
+        return assessmentService.listForInstitute(userId).stream().map(AssessmentMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
-    public AssessmentResponseDto get(@PathVariable UUID id) {
-        return AssessmentMapper.toDto(assessmentService.get(id));
+    public AssessmentResponseDto get(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
+            .getId();
+        return AssessmentMapper.toDto(assessmentService.getForInstitute(userId, id));
     }
 }

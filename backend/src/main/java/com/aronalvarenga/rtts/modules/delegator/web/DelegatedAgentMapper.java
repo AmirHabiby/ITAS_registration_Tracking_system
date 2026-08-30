@@ -12,7 +12,9 @@ public final class DelegatedAgentMapper {
             delegation.getId(),
             delegation.getRepresentativeProfileId(),
             delegation.getDelegatorProfileId(),
+            delegation.getStatus(),
             delegation.getDelegatedAt(),
+            delegation.getRevokedAt(),
             delegation.getReason());
     }
 }

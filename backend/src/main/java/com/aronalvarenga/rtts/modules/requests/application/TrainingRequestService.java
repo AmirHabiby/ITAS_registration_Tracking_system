@@ -51,14 +51,31 @@ public class TrainingRequestService {
         return trainingRequestRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<TrainingRequestEntity> listForRepresentative(UUID representativeId) {
+        return trainingRequestRepository.findByRepresentativeIdOrderByRequestedAtDesc(representativeId);
+    }
+
     @Transactional
-    public TrainingRequestEntity requestTraining(TrainingRequestDto request) {
-        if (!representativeRepository.existsById(request.representativeId())) {
+    public TrainingRequestEntity requestTraining(UUID representativeId, TrainingRequestDto request) {
+        // Verify the representative exists
+        if (!representativeRepository.existsById(representativeId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Representative not found");
         }
+        // Verify the training exists
         trainingService.get(request.trainingId());
-        representativeService.markTrainingRequested(request.representativeId());
-        return trainingRequestRepository.save(new TrainingRequestEntity(request.representativeId(), request.trainingId()));
+        
+        // Mark representative as IN_TRAINING
+        representativeService.markTrainingRequested(representativeId);
+        
+        // Create and save the training request with the verified representative ID
+        return trainingRequestRepository.save(new TrainingRequestEntity(representativeId, request.trainingId()));
+    }
+
+    @Transactional
+    public TrainingRequestEntity requestTraining(TrainingRequestDto request) {
+        // Legacy method - kept for backward compatibility
+        return requestTraining(request.representativeId(), request);
     }
 
     @Transactional

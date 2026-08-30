@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/representative")
+@RequestMapping("/api/representatives/me")
 @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','REPRESENTATIVE')")
 public class RepresentativePortalController {
 
@@ -58,18 +58,25 @@ public class RepresentativePortalController {
     }
 
     @PostMapping("/training-requests")
-    public TrainingRequestResponseDto requestTraining(@Valid @RequestBody com.aronalvarenga.rtts.modules.requests.web.TrainingRequestDto request) {
-        return TrainingRequestMapper.toDto(trainingRequestService.requestTraining(request));
+    public TrainingRequestResponseDto requestTraining(@Valid @RequestBody com.aronalvarenga.rtts.modules.requests.web.TrainingRequestDto request, @AuthenticationPrincipal Jwt jwt) {
+        java.util.UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
+            .map(com.aronalvarenga.rtts.identity.domain.UserAccount::getId)
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
+        java.util.UUID representativeId = representativeRepository.findByUserId(userId)
+            .map(com.aronalvarenga.rtts.modules.representatives.domain.Representative::getId)
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Representative profile not found"));
+        // Pass the authenticated representative ID, not frontend-provided one
+        return TrainingRequestMapper.toDto(trainingRequestService.requestTraining(representativeId, request));
     }
 
     @GetMapping("/training-requests")
     public List<TrainingRequestResponseDto> myRequests(@AuthenticationPrincipal Jwt jwt) {
         java.util.UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .map(com.aronalvarenga.rtts.identity.domain.UserAccount::getId)
-            .orElseThrow();
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
         java.util.UUID representativeId = representativeRepository.findByUserId(userId)
             .map(com.aronalvarenga.rtts.modules.representatives.domain.Representative::getId)
-            .orElseThrow();
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Representative profile not found"));
         return trainingRequestRepository.findByRepresentativeIdOrderByRequestedAtDesc(representativeId).stream()
             .map(TrainingRequestMapper::toDto)
             .toList();
@@ -77,9 +84,12 @@ public class RepresentativePortalController {
 
     @GetMapping("/results")
     public List<RepresentativeResultResponseDto> results(@AuthenticationPrincipal Jwt jwt) {
-        java.util.UUID representativeId = userAccountRepository.findByUsername(jwt.getSubject())
+        java.util.UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .map(com.aronalvarenga.rtts.identity.domain.UserAccount::getId)
-            .orElseThrow();
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
+        java.util.UUID representativeId = representativeRepository.findByUserId(userId)
+            .map(com.aronalvarenga.rtts.modules.representatives.domain.Representative::getId)
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Representative profile not found"));
         return enrollmentRepository.findByRepresentativeIdOrderByAssessedAtDesc(representativeId).stream().map(RepresentativeResultMapper::toDto).toList();
     }
 

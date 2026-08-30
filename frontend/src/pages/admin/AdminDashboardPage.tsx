@@ -19,7 +19,7 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     void apiClient
-      .get<Dashboard>("/api/admin/dashboard")
+      .get<Dashboard>("/api/dashboard/admin")
       .then((response) => setData(response.data));
   }, []);
 

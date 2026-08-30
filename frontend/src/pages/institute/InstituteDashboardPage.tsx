@@ -15,7 +15,7 @@ export function InstituteDashboardPage() {
 
   useEffect(() => {
     void apiClient
-      .get<Dashboard>("/api/institute/dashboard")
+      .get<Dashboard>("/api/dashboard/institute")
       .then((response) => setData(response.data));
   }, []);
 

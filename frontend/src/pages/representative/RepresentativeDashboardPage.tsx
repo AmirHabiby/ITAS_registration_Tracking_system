@@ -15,7 +15,7 @@ export function RepresentativeDashboardPage() {
 
   useEffect(() => {
     void apiClient
-      .get<Dashboard>("/api/representative/dashboard")
+      .get<Dashboard>("/api/representatives/me/dashboard")
       .then((response) => setData(response.data));
   }, []);
 

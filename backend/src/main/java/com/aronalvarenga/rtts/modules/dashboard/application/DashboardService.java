@@ -1,6 +1,8 @@
 package com.aronalvarenga.rtts.modules.dashboard.application;
 
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationRepository;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationStatus;
 import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResultRepository;
 import com.aronalvarenga.rtts.modules.dashboard.domain.AuditLogRepository;
 import com.aronalvarenga.rtts.modules.dashboard.web.AdminDashboardResponseDto;
@@ -29,6 +31,7 @@ public class DashboardService {
     private final TrainingRequestRepository trainingRequestRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final AuditLogRepository auditLogRepository;
+    private final AgentDelegationRepository agentDelegationRepository;
 
     public DashboardService(
         UserAccountRepository userAccountRepository,
@@ -36,7 +39,8 @@ public class DashboardService {
         TrainingRepository trainingRepository,
         TrainingRequestRepository trainingRequestRepository,
         EnrollmentRepository enrollmentRepository,
-        AuditLogRepository auditLogRepository
+        AuditLogRepository auditLogRepository,
+        AgentDelegationRepository agentDelegationRepository
     ) {
         this.userAccountRepository = userAccountRepository;
         this.representativeRepository = representativeRepository;
@@ -44,6 +48,7 @@ public class DashboardService {
         this.trainingRequestRepository = trainingRequestRepository;
         this.enrollmentRepository = enrollmentRepository;
         this.auditLogRepository = auditLogRepository;
+        this.agentDelegationRepository = agentDelegationRepository;
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +59,7 @@ public class DashboardService {
             userAccountRepository.countByRole(com.aronalvarenga.rtts.identity.domain.UserRole.TRAINING_INSTITUTE),
             trainingRepository.count(),
             representativeRepository.countByStatus(RepresentativeStatus.TRAINED),
-            representativeRepository.countByStatus(RepresentativeStatus.AGENT),
+            agentDelegationRepository.countByStatus(AgentDelegationStatus.ACTIVE),
             trainingRequestRepository.countByStatus(TrainingRequestStatus.PENDING),
             trainingRequestRepository.countByStatus(TrainingRequestStatus.APPROVED),
             trainingRequestRepository.countByStatus(TrainingRequestStatus.REJECTED)

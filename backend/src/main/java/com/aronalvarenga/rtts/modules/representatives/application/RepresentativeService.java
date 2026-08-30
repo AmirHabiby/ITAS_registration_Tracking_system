@@ -48,10 +48,9 @@ public class RepresentativeService {
     public Representative markAgent(UUID representativeId) {
         Representative representative = getOrThrow(representativeId);
         if (representative.getStatus() != RepresentativeStatus.TRAINED) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only trained representatives can be marked as agent");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Only trained representatives can be delegated as agent");
         }
-        representative.setStatus(RepresentativeStatus.AGENT);
-        return representativeRepository.save(representative);
+        return representative;
     }
 
     @Transactional(readOnly = true)

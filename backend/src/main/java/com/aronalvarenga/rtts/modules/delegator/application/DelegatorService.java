@@ -3,6 +3,7 @@ package com.aronalvarenga.rtts.modules.delegator.application;
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegation;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationRepository;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationStatus;
 import com.aronalvarenga.rtts.modules.common.exception.BadRequestException;
 import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.delegator.web.DelegatorDecisionRequest;
@@ -77,13 +78,18 @@ public class DelegatorService {
         Representative representative = representativeRepository.findById(representativeId)
             .orElseThrow(() -> new BadRequestException("Representative not found"));
         if (representative.getStatus() != RepresentativeStatus.TRAINED) {
-            throw new BadRequestException("Only trained representatives can be marked as agent");
+            throw new BadRequestException("Only trained representatives can be delegated as agent");
+        }
+        if (agentDelegationRepository.existsByRepresentativeProfileIdAndStatus(representativeId, AgentDelegationStatus.ACTIVE)) {
+            throw new BadRequestException("Representative already has an active delegation");
         }
         UUID delegatorId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new BadRequestException("Delegator not found"))
             .getId();
         representativeService.markAgent(representativeId);
-        return agentDelegationRepository.save(new AgentDelegation(representativeId, delegatorId, request.note()));
+        AgentDelegation delegation = new AgentDelegation(representativeId, delegatorId, request == null ? null : request.note());
+        delegation.setStatus(AgentDelegationStatus.ACTIVE);
+        return agentDelegationRepository.save(delegation);
     }
 
     @Transactional(readOnly = true)

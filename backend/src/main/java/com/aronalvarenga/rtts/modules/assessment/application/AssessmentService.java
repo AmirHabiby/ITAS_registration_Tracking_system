@@ -3,6 +3,7 @@ package com.aronalvarenga.rtts.modules.assessment.application;
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResult;
 import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResultRepository;
+import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResultStatus;
 import com.aronalvarenga.rtts.modules.assessment.web.AssessmentRequestDto;
 import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.enrollments.domain.Enrollment;
@@ -106,7 +107,19 @@ public class AssessmentService {
 
         boolean passed = request.score().compareTo(training.getPassingScore()) >= 0;
         int failedAttempts = assessmentResultRepository.findByTrainingEnrollmentIdAndPassedFalseOrderByAssessmentDateDesc(enrollment.getId()).size();
-        AssessmentResult assessmentResult = new AssessmentResult(enrollment.getId(), submittedByUserId, request.score(), passed, request.remarks());
+        int attemptNumber = failedAttempts + 1;
+        AssessmentResultStatus resultStatus = passed ? AssessmentResultStatus.PASSED : AssessmentResultStatus.FAILED;
+
+        AssessmentResult assessmentResult = new AssessmentResult(
+            enrollment.getId(),
+            submittedByUserId,
+            request.score(),
+            training.getPassingScore(),
+            attemptNumber,
+            resultStatus,
+            passed,
+            request.remarks()
+        );
         assessmentResult.setAssessmentDate(request.assessmentDate());
         AssessmentResult saved = assessmentResultRepository.save(assessmentResult);
 

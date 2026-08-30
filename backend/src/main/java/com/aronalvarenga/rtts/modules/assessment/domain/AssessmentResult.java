@@ -3,6 +3,8 @@ package com.aronalvarenga.rtts.modules.assessment.domain;
 import com.aronalvarenga.rtts.shared.domain.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,6 +30,16 @@ public class AssessmentResult extends AuditableEntity {
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal score;
 
+    @Column(name = "passing_score_at_assessment", nullable = false, precision = 5, scale = 2)
+    private BigDecimal passingScoreAtAssessment;
+
+    @Column(name = "attempt_number", nullable = false)
+    private int attemptNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result_status", nullable = false)
+    private AssessmentResultStatus resultStatus;
+
     @Column(nullable = false)
     private boolean passed;
 
@@ -40,10 +52,13 @@ public class AssessmentResult extends AuditableEntity {
     protected AssessmentResult() {
     }
 
-    public AssessmentResult(UUID trainingEnrollmentId, UUID submittedByUserId, BigDecimal score, boolean passed, String remarks) {
+    public AssessmentResult(UUID trainingEnrollmentId, UUID submittedByUserId, BigDecimal score, BigDecimal passingScoreAtAssessment, int attemptNumber, AssessmentResultStatus resultStatus, boolean passed, String remarks) {
         this.trainingEnrollmentId = trainingEnrollmentId;
         this.submittedByUserId = submittedByUserId;
         this.score = score;
+        this.passingScoreAtAssessment = passingScoreAtAssessment;
+        this.attemptNumber = attemptNumber;
+        this.resultStatus = resultStatus;
         this.passed = passed;
         this.remarks = remarks;
     }
@@ -52,6 +67,9 @@ public class AssessmentResult extends AuditableEntity {
     public UUID getTrainingEnrollmentId() { return trainingEnrollmentId; }
     public UUID getSubmittedByUserId() { return submittedByUserId; }
     public BigDecimal getScore() { return score; }
+    public BigDecimal getPassingScoreAtAssessment() { return passingScoreAtAssessment; }
+    public int getAttemptNumber() { return attemptNumber; }
+    public AssessmentResultStatus getResultStatus() { return resultStatus; }
     public boolean isPassed() { return passed; }
     public String getRemarks() { return remarks; }
     public Instant getAssessmentDate() { return assessmentDate; }
@@ -59,6 +77,9 @@ public class AssessmentResult extends AuditableEntity {
     public void setTrainingEnrollmentId(UUID trainingEnrollmentId) { this.trainingEnrollmentId = trainingEnrollmentId; }
     public void setSubmittedByUserId(UUID submittedByUserId) { this.submittedByUserId = submittedByUserId; }
     public void setScore(BigDecimal score) { this.score = score; }
+    public void setPassingScoreAtAssessment(BigDecimal passingScoreAtAssessment) { this.passingScoreAtAssessment = passingScoreAtAssessment; }
+    public void setAttemptNumber(int attemptNumber) { this.attemptNumber = attemptNumber; }
+    public void setResultStatus(AssessmentResultStatus resultStatus) { this.resultStatus = resultStatus; }
     public void setPassed(boolean passed) { this.passed = passed; }
     public void setRemarks(String remarks) { this.remarks = remarks; }
     public void setAssessmentDate(Instant assessmentDate) { this.assessmentDate = assessmentDate; }

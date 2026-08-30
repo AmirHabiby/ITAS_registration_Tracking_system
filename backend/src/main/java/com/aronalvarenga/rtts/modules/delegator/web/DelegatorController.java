@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/delegator")
+@RequestMapping("/api/delegators/me")
 @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','DELEGATOR')")
 public class DelegatorController {
 
