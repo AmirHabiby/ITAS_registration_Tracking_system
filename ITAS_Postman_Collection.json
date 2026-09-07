@@ -1,0 +1,1139 @@
+{
+  "info": {
+    "name": "ITAS Registration Tracking System",
+    "description": "Complete API testing collection for ITAS with all endpoints and JSON examples",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('token', jsonData.token);",
+                  "    pm.environment.set('username', jsonData.username);",
+                  "    pm.environment.set('role', jsonData.role);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"admin\", \"password\": \"password\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/admin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Delegator Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/delegator",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "delegator"]
+            }
+          }
+        },
+        {
+          "name": "Institute Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/institute",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "institute"]
+            }
+          }
+        },
+        {
+          "name": "Representative Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/representative",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "representative"]
+            }
+          }
+        },
+        {
+          "name": "My Dashboard (Role-based)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Trainings",
+      "item": [
+        {
+          "name": "List Available Trainings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trainings/available",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trainings", "available"]
+            }
+          }
+        },
+        {
+          "name": "Get Training by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/trainings/{{training_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trainings", "{{training_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Training",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"instituteId\": \"{{institute_id}}\", \"title\": \"Advanced Excel Skills\", \"description\": \"Learn advanced Excel formulas and pivot tables\", \"startDate\": \"2026-10-01\", \"endDate\": \"2026-10-15\", \"capacity\": 25}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trainings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trainings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Institutes",
+      "item": [
+        {
+          "name": "List All Institutes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/institutes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes"]
+            }
+          }
+        },
+        {
+          "name": "Get Institute by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/institutes/{{institute_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "{{institute_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Institute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Digital Marketing Institute\", \"contactEmail\": \"contact@digitalmarketing.com\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/institutes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Training Institute Portal",
+      "item": [
+        {
+          "name": "Create Training for Institute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"instituteId\": \"{{institute_id}}\", \"title\": \"Data Analytics Basics\", \"description\": \"Learn data analytics using tools and spreadsheets\", \"startDate\": \"2026-10-20\", \"endDate\": \"2026-11-10\", \"capacity\": 40}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/institutes/me/trainings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "me", "trainings"]
+            }
+          }
+        },
+        {
+          "name": "List My Institute Trainings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/institutes/me/trainings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "me", "trainings"]
+            }
+          }
+        },
+        {
+          "name": "Update Training",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"instituteId\": \"{{institute_id}}\", \"title\": \"Updated Training Title\", \"description\": \"Updated description\", \"startDate\": \"2026-10-20\", \"endDate\": \"2026-11-10\", \"capacity\": 50}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/institutes/me/trainings/{{training_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "me", "trainings", "{{training_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Training",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/institutes/me/trainings/{{training_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "me", "trainings", "{{training_id}}"]
+            }
+          }
+        },
+        {
+          "name": "List My Institute Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/institutes/me/enrollments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "institutes", "me", "enrollments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessments",
+      "item": [
+        {
+          "name": "Submit Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"enrollmentId\": \"{{enrollment_id}}\", \"score\": 88.5, \"remarks\": \"Excellent performance in practical tasks\", \"assessmentDate\": \"2026-09-28T14:15:00Z\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments"]
+            }
+          }
+        },
+        {
+          "name": "List All Assessments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments"]
+            }
+          }
+        },
+        {
+          "name": "Get Assessment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/{{assessment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "{{assessment_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollments",
+      "item": [
+        {
+          "name": "List All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/enrollments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments"]
+            }
+          }
+        },
+        {
+          "name": "Record Assessment for Enrollment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"trainingId\": \"{{training_id}}\", \"representativeId\": \"{{representative_id}}\", \"score\": 92.0, \"note\": \"Outstanding performance in all assessments\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/enrollments/assess",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments", "assess"]
+            }
+          }
+        },
+        {
+          "name": "Get Enrollment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/enrollments/{{enrollment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments", "{{enrollment_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Training Requests",
+      "item": [
+        {
+          "name": "List All Training Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/training-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "training-requests"]
+            }
+          }
+        },
+        {
+          "name": "Create Training Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"representativeId\": \"{{representative_id}}\", \"trainingId\": \"{{training_id}}\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/training-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "training-requests"]
+            }
+          }
+        },
+        {
+          "name": "Approve Training Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"note\": \"Approved - Representative meets requirements\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/training-requests/{{training_request_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "training-requests", "{{training_request_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Training Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"note\": \"Rejected - Training not aligned with current objectives\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/training-requests/{{training_request_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "training-requests", "{{training_request_id}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Get Training Request by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/training-requests/{{training_request_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "training-requests", "{{training_request_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Representatives",
+      "item": [
+        {
+          "name": "List All Representatives",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/representatives",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives"]
+            }
+          }
+        },
+        {
+          "name": "Create Representative",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"fullName\": \"Jane Smith\", \"email\": \"jane.smith@example.com\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/representatives",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives"]
+            }
+          }
+        },
+        {
+          "name": "Mark Representative as Trained",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/{{representative_id}}/trained",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "{{representative_id}}", "trained"]
+            }
+          }
+        },
+        {
+          "name": "Mark Representative as Agent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/{{representative_id}}/agent",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "{{representative_id}}", "agent"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Representative Portal",
+      "item": [
+        {
+          "name": "List Available Trainings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/me/trainings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "me", "trainings"]
+            }
+          }
+        },
+        {
+          "name": "Request Training",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"representativeId\": \"{{representative_id}}\", \"trainingId\": \"{{training_id}}\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/representatives/me/training-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "me", "training-requests"]
+            }
+          }
+        },
+        {
+          "name": "List My Training Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/me/training-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "me", "training-requests"]
+            }
+          }
+        },
+        {
+          "name": "View My Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/me/results",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "me", "results"]
+            }
+          }
+        },
+        {
+          "name": "View My Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/representatives/me/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "representatives", "me", "dashboard"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delegator Portal",
+      "item": [
+        {
+          "name": "List All Training Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/training-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "training-requests"]
+            }
+          }
+        },
+        {
+          "name": "List Pending Training Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/training-requests/pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "training-requests", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Approve Training Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"note\": \"Approved for training\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/training-requests/{{training_request_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "training-requests", "{{training_request_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Reject Training Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"note\": \"Cannot approve at this time\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/training-requests/{{training_request_id}}/reject",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "training-requests", "{{training_request_id}}", "reject"]
+            }
+          }
+        },
+        {
+          "name": "List Trained Representatives",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/trained-representatives",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "trained-representatives"]
+            }
+          }
+        },
+        {
+          "name": "Mark Representative as Agent",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"note\": \"Marked as agent\"}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/representatives/{{representative_id}}/mark-as-agent",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "representatives", "{{representative_id}}", "mark-as-agent"]
+            }
+          }
+        },
+        {
+          "name": "List My Agents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/delegators/me/agents",
+              "host": ["{{base_url}}"],
+              "path": ["api", "delegators", "me", "agents"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Create Representative User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"rep_john\", \"password\": \"SecurePassword123!\", \"displayName\": \"John Representative\", \"fullName\": \"John Michael Doe\", \"email\": \"john.rep@example.com\", \"enabled\": true}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/representatives",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "representatives"]
+            }
+          }
+        },
+        {
+          "name": "Create Delegator User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"del_jane\", \"password\": \"SecurePassword123!\", \"displayName\": \"Jane Delegator\", \"fullName\": \"Jane Marie Smith\", \"email\": \"jane.delegator@example.com\", \"enabled\": true}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/delegators",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "delegators"]
+            }
+          }
+        },
+        {
+          "name": "Create Training Institute User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\": \"inst_techacademy\", \"password\": \"SecurePassword123!\", \"displayName\": \"Tech Academy Admin\", \"name\": \"Tech Training Academy\", \"contactEmail\": \"admin@techacademy.com\", \"enabled\": true}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/training-institutes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "training-institutes"]
+            }
+          }
+        },
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Activate User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/activate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/deactivate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users", "{{user_id}}", "deactivate"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "institute_id",
+      "value": "456e7890-e89b-12d3-a456-426614174001",
+      "type": "string"
+    },
+    {
+      "key": "training_id",
+      "value": "123e4567-e89b-12d3-a456-426614174000",
+      "type": "string"
+    },
+    {
+      "key": "representative_id",
+      "value": "111i4567-e89b-12d3-a456-426614174005",
+      "type": "string"
+    },
+    {
+      "key": "training_request_id",
+      "value": "333k6789-e89b-12d3-a456-426614174007",
+      "type": "string"
+    },
+    {
+      "key": "enrollment_id",
+      "value": "999h3456-e89b-12d3-a456-426614174004",
+      "type": "string"
+    },
+    {
+      "key": "assessment_id",
+      "value": "222j5678-e89b-12d3-a456-426614174006",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "444l7890-e89b-12d3-a456-426614174008",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "role",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
