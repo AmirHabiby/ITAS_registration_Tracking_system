@@ -1,14 +1,11 @@
-import { Table } from "antd";
+import { Card } from "antd";
+import { AdminCreateForm } from "../../components/AdminCreateForm";
+import { portalService } from "../../services/portalService";
 
 export function AdminRepresentativesPage() {
   return (
-    <Table
-      dataSource={[]}
-      columns={[
-        { title: "Name", dataIndex: "fullName" },
-        { title: "Status", dataIndex: "status" },
-      ]}
-      rowKey="id"
-    />
+    <Card title="Create representative">
+      <AdminCreateForm kind="representative" onSubmit={async (body) => { await portalService.createRepresentative(body); }} />
+    </Card>
   );
 }

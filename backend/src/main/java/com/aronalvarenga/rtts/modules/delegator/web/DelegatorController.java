@@ -5,6 +5,8 @@ import com.aronalvarenga.rtts.modules.requests.web.TrainingRequestMapper;
 import com.aronalvarenga.rtts.modules.requests.web.TrainingRequestResponseDto;
 import com.aronalvarenga.rtts.modules.representatives.web.RepresentativeMapper;
 import com.aronalvarenga.rtts.modules.representatives.web.RepresentativeResponseDto;
+import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
+import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -24,30 +26,42 @@ import org.springframework.web.bind.annotation.RestController;
 public class DelegatorController {
 
     private final DelegatorService delegatorService;
+    private final RepresentativeRepository representativeRepository;
+    private final TrainingRepository trainingRepository;
 
-    public DelegatorController(DelegatorService delegatorService) {
+    public DelegatorController(
+        DelegatorService delegatorService,
+        RepresentativeRepository representativeRepository,
+        TrainingRepository trainingRepository
+    ) {
         this.delegatorService = delegatorService;
+        this.representativeRepository = representativeRepository;
+        this.trainingRepository = trainingRepository;
     }
 
     @GetMapping("/training-requests")
     public List<TrainingRequestResponseDto> listTrainingRequests() {
-        return delegatorService.listTrainingRequests().stream().map(TrainingRequestMapper::toDto).toList();
+        return delegatorService.listTrainingRequests().stream()
+            .map(request -> TrainingRequestMapper.toDto(request, representativeRepository, trainingRepository))
+            .toList();
     }
 
     @GetMapping("/training-requests/pending")
     public List<TrainingRequestResponseDto> listPendingTrainingRequests() {
-        return delegatorService.listPendingTrainingRequests().stream().map(TrainingRequestMapper::toDto).toList();
+        return delegatorService.listPendingTrainingRequests().stream()
+            .map(request -> TrainingRequestMapper.toDto(request, representativeRepository, trainingRepository))
+            .toList();
     }
 
     @PatchMapping("/training-requests/{id}/approve")
     public TrainingRequestResponseDto approve(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt, @RequestBody(required = false) DelegatorDecisionRequest request) {
         DelegatorDecisionRequest decision = request == null ? new DelegatorDecisionRequest(null) : request;
-        return TrainingRequestMapper.toDto(delegatorService.approve(id, jwt, decision));
+        return TrainingRequestMapper.toDto(delegatorService.approve(id, jwt, decision), representativeRepository, trainingRepository);
     }
 
     @PatchMapping("/training-requests/{id}/reject")
     public TrainingRequestResponseDto reject(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody DelegatorDecisionRequest request) {
-        return TrainingRequestMapper.toDto(delegatorService.reject(id, jwt, request));
+        return TrainingRequestMapper.toDto(delegatorService.reject(id, jwt, request), representativeRepository, trainingRepository);
     }
 
     @GetMapping("/trained-representatives")

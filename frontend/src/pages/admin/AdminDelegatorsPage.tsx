@@ -1,14 +1,11 @@
-import { Table } from "antd";
+import { Card } from "antd";
+import { AdminCreateForm } from "../../components/AdminCreateForm";
+import { portalService } from "../../services/portalService";
 
 export function AdminDelegatorsPage() {
   return (
-    <Table
-      dataSource={[]}
-      columns={[
-        { title: "Name", dataIndex: "fullName" },
-        { title: "Email", dataIndex: "email" },
-      ]}
-      rowKey="id"
-    />
+    <Card title="Create delegator">
+      <AdminCreateForm kind="delegator" onSubmit={async (body) => { await portalService.createDelegator(body); }} />
+    </Card>
   );
 }

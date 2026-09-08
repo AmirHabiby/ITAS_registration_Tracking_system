@@ -1,14 +1,11 @@
-import { Table } from "antd";
+import { Card } from "antd";
+import { AdminCreateForm } from "../../components/AdminCreateForm";
+import { portalService } from "../../services/portalService";
 
 export function AdminTrainingInstitutesPage() {
   return (
-    <Table
-      dataSource={[]}
-      columns={[
-        { title: "Name", dataIndex: "name" },
-        { title: "Contact Email", dataIndex: "contactEmail" },
-      ]}
-      rowKey="id"
-    />
+    <Card title="Create training institute">
+      <AdminCreateForm kind="institute" onSubmit={async (body) => { await portalService.createInstitute(body); }} />
+    </Card>
   );
 }

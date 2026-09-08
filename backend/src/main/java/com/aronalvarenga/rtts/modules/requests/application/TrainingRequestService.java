@@ -5,6 +5,7 @@ import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepos
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.enrollments.domain.Enrollment;
 import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
+import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestEntity;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestRepository;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestStatus;
@@ -29,6 +30,7 @@ public class TrainingRequestService {
     private final RepresentativeService representativeService;
     private final EnrollmentRepository enrollmentRepository;
     private final UserAccountRepository userAccountRepository;
+    private final DelegatorProfileRepository delegatorProfileRepository;
 
     public TrainingRequestService(
         TrainingRequestRepository trainingRequestRepository,
@@ -36,7 +38,8 @@ public class TrainingRequestService {
         TrainingService trainingService,
         RepresentativeService representativeService,
         EnrollmentRepository enrollmentRepository,
-        UserAccountRepository userAccountRepository
+        UserAccountRepository userAccountRepository,
+        DelegatorProfileRepository delegatorProfileRepository
     ) {
         this.trainingRequestRepository = trainingRequestRepository;
         this.representativeRepository = representativeRepository;
@@ -44,6 +47,7 @@ public class TrainingRequestService {
         this.representativeService = representativeService;
         this.enrollmentRepository = enrollmentRepository;
         this.userAccountRepository = userAccountRepository;
+        this.delegatorProfileRepository = delegatorProfileRepository;
     }
 
     @Transactional(readOnly = true)
@@ -81,8 +85,11 @@ public class TrainingRequestService {
     @Transactional
     public TrainingRequestEntity approve(UUID requestId, Jwt jwt, ReviewRequest reviewRequest) {
         TrainingRequestEntity trainingRequest = get(requestId);
-        UUID delegatorId = userAccountRepository.findByUsername(jwt.getSubject())
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Delegator not found"))
+            .getId();
+        UUID delegatorId = delegatorProfileRepository.findByUserId(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Delegator profile not found"))
             .getId();
         trainingRequest.setStatus(TrainingRequestStatus.APPROVED);
         trainingRequest.setApprovedByDelegatorId(delegatorId);
@@ -105,8 +112,11 @@ public class TrainingRequestService {
     @Transactional
     public TrainingRequestEntity reject(UUID requestId, Jwt jwt, ReviewRequest reviewRequest) {
         TrainingRequestEntity trainingRequest = get(requestId);
-        UUID delegatorId = userAccountRepository.findByUsername(jwt.getSubject())
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Delegator not found"))
+            .getId();
+        UUID delegatorId = delegatorProfileRepository.findByUserId(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Delegator profile not found"))
             .getId();
         trainingRequest.setStatus(TrainingRequestStatus.REJECTED);
         trainingRequest.setRejectedByDelegatorId(delegatorId);

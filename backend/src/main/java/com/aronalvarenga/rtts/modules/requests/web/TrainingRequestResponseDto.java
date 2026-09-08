@@ -7,7 +7,9 @@ import java.util.UUID;
 public record TrainingRequestResponseDto(
     UUID id,
     UUID representativeId,
+    String representativeName,
     UUID trainingId,
+    String trainingTitle,
     TrainingRequestStatus status,
     String reviewerUsername,
     String reviewerNote,
