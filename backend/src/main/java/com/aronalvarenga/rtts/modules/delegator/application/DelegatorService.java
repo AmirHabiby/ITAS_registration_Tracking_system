@@ -31,6 +31,7 @@ public class DelegatorService {
     private final RepresentativeService representativeService;
     private final AgentDelegationRepository agentDelegationRepository;
     private final UserAccountRepository userAccountRepository;
+    private final DelegatorProfileRepository delegatorProfileRepository;
 
     public DelegatorService(
         TrainingRequestRepository trainingRequestRepository,
@@ -38,7 +39,8 @@ public class DelegatorService {
         RepresentativeRepository representativeRepository,
         RepresentativeService representativeService,
         AgentDelegationRepository agentDelegationRepository,
-        UserAccountRepository userAccountRepository
+        UserAccountRepository userAccountRepository,
+        DelegatorProfileRepository delegatorProfileRepository
     ) {
         this.trainingRequestRepository = trainingRequestRepository;
         this.trainingRequestService = trainingRequestService;
@@ -46,6 +48,7 @@ public class DelegatorService {
         this.representativeService = representativeService;
         this.agentDelegationRepository = agentDelegationRepository;
         this.userAccountRepository = userAccountRepository;
+        this.delegatorProfileRepository = delegatorProfileRepository;
     }
 
     @Transactional(readOnly = true)
@@ -83,8 +86,11 @@ public class DelegatorService {
         if (agentDelegationRepository.existsByRepresentativeProfileIdAndStatus(representativeId, AgentDelegationStatus.ACTIVE)) {
             throw new BadRequestException("Representative already has an active delegation");
         }
-        UUID delegatorId = userAccountRepository.findByUsername(jwt.getSubject())
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new BadRequestException("Delegator not found"))
+            .getId();
+        UUID delegatorId = delegatorProfileRepository.findByUserId(userId)
+            .orElseThrow(() -> new BadRequestException("Delegator profile not found"))
             .getId();
         representativeService.markAgent(representativeId);
         AgentDelegation delegation = new AgentDelegation(representativeId, delegatorId, request == null ? null : request.note());

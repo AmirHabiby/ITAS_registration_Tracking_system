@@ -13,6 +13,8 @@ import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegation;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationRepository;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationStatus;
 import com.aronalvarenga.rtts.modules.delegator.web.DelegatorDecisionRequest;
+import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfile;
+import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.representatives.application.RepresentativeService;
 import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
 import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
@@ -34,6 +36,7 @@ class DelegatorServiceTest {
         RepresentativeService representativeService = mock(RepresentativeService.class);
         AgentDelegationRepository agentDelegationRepository = mock(AgentDelegationRepository.class);
         UserAccountRepository userAccountRepository = mock(UserAccountRepository.class);
+        DelegatorProfileRepository delegatorProfileRepository = mock(DelegatorProfileRepository.class);
 
         UUID representativeId = UUID.randomUUID();
         UUID delegatorUserId = UUID.randomUUID();
@@ -50,6 +53,9 @@ class DelegatorServiceTest {
         when(jwt.getSubject()).thenReturn("delegator");
         when(representativeRepository.findById(representativeId)).thenReturn(Optional.of(representative));
         when(userAccountRepository.findByUsername("delegator")).thenReturn(Optional.of(delegatorUser));
+        DelegatorProfile delegatorProfile = new DelegatorProfile(delegatorUserId, "Delegator", "delegator@example.com");
+        delegatorProfile.setId(delegatorProfileId);
+        when(delegatorProfileRepository.findByUserId(delegatorUserId)).thenReturn(Optional.of(delegatorProfile));
         when(agentDelegationRepository.save(any(AgentDelegation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         DelegatorService service = new DelegatorService(
@@ -58,14 +64,15 @@ class DelegatorServiceTest {
             representativeRepository,
             representativeService,
             agentDelegationRepository,
-            userAccountRepository
+            userAccountRepository,
+            delegatorProfileRepository
         );
 
         AgentDelegation result = service.markAsAgent(representativeId, jwt, new DelegatorDecisionRequest("Approved"));
 
         assertNotNull(result);
         assertEquals(representativeId, result.getRepresentativeProfileId());
-        assertEquals(delegatorUserId, result.getDelegatorProfileId());
+        assertEquals(delegatorProfileId, result.getDelegatorProfileId());
         assertEquals(AgentDelegationStatus.ACTIVE, result.getStatus());
         assertNotNull(result.getDelegatedAt());
     }
