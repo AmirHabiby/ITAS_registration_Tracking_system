@@ -20,8 +20,11 @@ public class AgentDelegation extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "representative_profile_id", nullable = false)
+    @Column(name = "representative_profile_id")
     private UUID representativeProfileId;
+
+    @Column(name = "firm_id")
+    private UUID firmId;
 
     @Column(name = "delegator_profile_id", nullable = false)
     private UUID delegatorProfileId;
@@ -51,6 +54,7 @@ public class AgentDelegation extends AuditableEntity {
 
     public UUID getId() { return id; }
     public UUID getRepresentativeProfileId() { return representativeProfileId; }
+    public UUID getFirmId() { return firmId; }
     public UUID getDelegatorProfileId() { return delegatorProfileId; }
     public AgentDelegationStatus getStatus() { return status; }
     public Instant getDelegatedAt() { return delegatedAt; }
@@ -58,6 +62,7 @@ public class AgentDelegation extends AuditableEntity {
     public String getReason() { return reason; }
     public void setId(UUID id) { this.id = id; }
     public void setRepresentativeProfileId(UUID representativeProfileId) { this.representativeProfileId = representativeProfileId; }
+    public void setFirmId(UUID firmId) { this.firmId = firmId; }
     public void setDelegatorProfileId(UUID delegatorProfileId) { this.delegatorProfileId = delegatorProfileId; }
     public void setStatus(AgentDelegationStatus status) { this.status = status; }
     public void setDelegatedAt(Instant delegatedAt) { this.delegatedAt = delegatedAt; }

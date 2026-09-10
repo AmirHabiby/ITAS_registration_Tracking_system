@@ -3,11 +3,13 @@ package com.aronalvarenga.rtts.modules.trainings.application;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstituteRepository;
 import com.aronalvarenga.rtts.modules.trainings.domain.Training;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
+import com.aronalvarenga.rtts.modules.trainings.domain.TrainingAccessType;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingStatus;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingRequestDto;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,15 +19,17 @@ public class TrainingService {
 
     private final TrainingRepository trainingRepository;
     private final TrainingInstituteRepository trainingInstituteRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public TrainingService(TrainingRepository trainingRepository, TrainingInstituteRepository trainingInstituteRepository) {
+    public TrainingService(TrainingRepository trainingRepository, TrainingInstituteRepository trainingInstituteRepository, PasswordEncoder passwordEncoder) {
         this.trainingRepository = trainingRepository;
         this.trainingInstituteRepository = trainingInstituteRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
     public List<Training> listAvailable() {
-        return trainingRepository.findByActiveTrueOrderByStartDateAsc();
+        return trainingRepository.findByActiveTrueAndAccessTypeNotOrderByStartDateAsc(TrainingAccessType.STAFF);
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +57,10 @@ public class TrainingService {
         if (!trainingInstituteRepository.existsById(request.instituteId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Institute not found");
         }
+        if (request.accessType() == TrainingAccessType.STAFF
+            && (request.staffAccessPassword() == null || request.staffAccessPassword().isBlank())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A staff access password is required");
+        }
         Training training = new Training(
             request.instituteId(),
             request.title(),
@@ -60,6 +68,10 @@ public class TrainingService {
             request.startDate(),
             request.endDate(),
             request.capacity());
+        training.setAccessType(request.accessType());
+        if (request.accessType() == TrainingAccessType.STAFF) {
+            training.setStaffAccessPasswordHash(passwordEncoder.encode(request.staffAccessPassword()));
+        }
         training.setStatus(TrainingStatus.PUBLISHED);
         return trainingRepository.save(training);
     }

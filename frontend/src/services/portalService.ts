@@ -10,6 +10,7 @@ export type Training = {
   capacity: number;
   passingScore: number | null;
   allowedRetakeAttempts: number;
+  accessType: "PRIVATE" | "PUBLIC" | "STAFF";
   status: string;
   active: boolean;
 };
@@ -136,6 +137,8 @@ export const portalService = {
     startDate: string;
     endDate: string;
     capacity: number;
+    accessType: "PRIVATE" | "PUBLIC" | "STAFF";
+    staffAccessPassword?: string;
   }) => apiClient.post<Training>("/api/institutes/me/trainings", body),
   listAssessments: () => apiClient.get<Assessment[]>("/api/assessments"),
   submitAssessment: (body: {

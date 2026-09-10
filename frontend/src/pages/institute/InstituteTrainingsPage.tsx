@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Form, Input, InputNumber, Space, Table, Tag, message } from "antd";
+import { Alert, Button, Card, Form, Input, InputNumber, Select, Space, Table, Tag, message } from "antd";
 import { useEffect, useState } from "react";
 import { portalService, type Training } from "../../services/portalService";
 
@@ -21,7 +21,7 @@ export function InstituteTrainingsPage() {
 
   useEffect(() => { void loadTrainings(); }, []);
 
-  async function createTraining(values: { instituteId: string; title: string; description: string; startDate: string; endDate: string; capacity: number }) {
+  async function createTraining(values: { instituteId: string; title: string; description: string; startDate: string; endDate: string; capacity: number; accessType: "PRIVATE" | "PUBLIC" | "STAFF"; staffAccessPassword?: string }) {
     setSubmitting(true);
     try {
       await portalService.createInstituteTraining(values);
@@ -45,6 +45,20 @@ export function InstituteTrainingsPage() {
           <Form.Item name="startDate" label="Start date" rules={[{ required: true }]}><Input type="date" /></Form.Item>
           <Form.Item name="endDate" label="End date" rules={[{ required: true }]}><Input type="date" /></Form.Item>
           <Form.Item name="capacity" label="Capacity" rules={[{ required: true }]}><InputNumber min={1} style={{ width: "100%" }} /></Form.Item>
+          <Form.Item name="accessType" label="Access type" initialValue="PRIVATE" rules={[{ required: true }]}>
+            <Select options={[
+              { value: "PRIVATE", label: "Private" },
+              { value: "PUBLIC", label: "Public" },
+              { value: "STAFF", label: "Staff" },
+            ]} />
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(previous, current) => previous.accessType !== current.accessType}>
+            {({ getFieldValue }) => getFieldValue("accessType") === "STAFF" ? (
+              <Form.Item name="staffAccessPassword" label="Staff access password" rules={[{ required: true, min: 8 }]}>
+                <Input.Password />
+              </Form.Item>
+            ) : null}
+          </Form.Item>
           <Button type="primary" htmlType="submit" loading={submitting}>Create training</Button>
         </Form>
       </Card>
@@ -52,6 +66,7 @@ export function InstituteTrainingsPage() {
         { title: "Title", dataIndex: "title" },
         { title: "Dates", render: (_, training) => `${training.startDate} - ${training.endDate}` },
         { title: "Capacity", dataIndex: "capacity" },
+        { title: "Access", dataIndex: "accessType", render: (accessType: Training["accessType"]) => <Tag>{accessType}</Tag> },
         { title: "Status", render: (_, training) => <Tag color={training.active ? "green" : "default"}>{training.status}</Tag> },
       ]} />
     </Space>

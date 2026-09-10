@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TrainingRepository extends JpaRepository<Training, UUID> {
-    List<Training> findByActiveTrueOrderByStartDateAsc();
+    List<Training> findByActiveTrueAndAccessTypeNotOrderByStartDateAsc(TrainingAccessType accessType);
     List<Training> findByTrainingInstituteProfileIdOrderByStartDateAsc(UUID trainingInstituteProfileId);
     long countByTrainingInstituteProfileId(UUID trainingInstituteProfileId);
     long countByTrainingInstituteProfileIdAndStatus(UUID trainingInstituteProfileId, TrainingStatus status);

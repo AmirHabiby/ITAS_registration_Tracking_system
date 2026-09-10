@@ -18,6 +18,7 @@ public final class TrainingMapper {
             training.getCapacity(),
             training.getPassingScore(),
             training.getAllowedRetakeAttempts(),
+            training.getAccessType(),
             training.getStatus(),
             training.isActive());
     }

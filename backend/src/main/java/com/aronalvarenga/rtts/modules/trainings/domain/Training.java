@@ -51,6 +51,13 @@ public class Training extends AuditableEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "access_type", nullable = false)
+    private TrainingAccessType accessType = TrainingAccessType.PRIVATE;
+
+    @Column(name = "staff_access_password_hash")
+    private String staffAccessPasswordHash;
+
     protected Training() {
     }
 
@@ -107,6 +114,14 @@ public class Training extends AuditableEntity {
         return active;
     }
 
+    public TrainingAccessType getAccessType() {
+        return accessType;
+    }
+
+    public String getStaffAccessPasswordHash() {
+        return staffAccessPasswordHash;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -149,5 +164,13 @@ public class Training extends AuditableEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public void setAccessType(TrainingAccessType accessType) {
+        this.accessType = accessType;
+    }
+
+    public void setStaffAccessPasswordHash(String staffAccessPasswordHash) {
+        this.staffAccessPasswordHash = staffAccessPasswordHash;
     }
 }
