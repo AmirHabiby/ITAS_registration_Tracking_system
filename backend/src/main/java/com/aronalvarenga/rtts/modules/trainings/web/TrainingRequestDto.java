@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record TrainingRequestDto(
-    @NotNull UUID instituteId,
+    UUID instituteId,
     @NotBlank String title,
     @NotBlank String description,
     @NotNull LocalDate startDate,

@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient } from './apiClient';
 
 export type Training = {
   id: string;
@@ -10,7 +10,7 @@ export type Training = {
   capacity: number;
   passingScore: number | null;
   allowedRetakeAttempts: number;
-  accessType: "PRIVATE" | "PUBLIC" | "STAFF";
+  accessType: 'PRIVATE' | 'PUBLIC' | 'STAFF';
   status: string;
   active: boolean;
 };
@@ -90,7 +90,7 @@ export type PublicTrainingSummary = {
   remainingTrainings: number;
 };
 
-const publicTraineeStorageKey = "rtts.publicTraineeId";
+const publicTraineeStorageKey = 'rtts.publicTraineeId';
 
 function getPublicTraineeId() {
   const storedId = localStorage.getItem(publicTraineeStorageKey);
@@ -101,86 +101,60 @@ function getPublicTraineeId() {
 }
 
 export const portalService = {
-  listAvailableTrainings: () =>
-    apiClient.get<Training[]>("/api/representatives/me/trainings"),
+  listAvailableTrainings: () => apiClient.get<Training[]>('/api/representatives/me/trainings'),
   requestTraining: (trainingId: string, representativeId: string) =>
-    apiClient.post<TrainingRequest>("/api/representatives/me/training-requests", {
+    apiClient.post<TrainingRequest>('/api/representatives/me/training-requests', {
       trainingId,
       representativeId,
     }),
-  listMyRequests: () =>
-    apiClient.get<TrainingRequest[]>("/api/representatives/me/training-requests"),
-  listMyResults: () =>
-    apiClient.get<RepresentativeResult[]>("/api/representatives/me/results"),
+  listMyRequests: () => apiClient.get<TrainingRequest[]>('/api/representatives/me/training-requests'),
+  listMyResults: () => apiClient.get<RepresentativeResult[]>('/api/representatives/me/results'),
 
   listDelegatorRequests: (pending = false) =>
     apiClient.get<TrainingRequest[]>(
-      pending
-        ? "/api/delegators/me/training-requests/pending"
-        : "/api/delegators/me/training-requests",
+      pending ? '/api/delegators/me/training-requests/pending' : '/api/delegators/me/training-requests',
     ),
-  decideDelegatorRequest: (id: string, action: "approve" | "reject", note: string) =>
-    apiClient.patch<TrainingRequest>(
-      `/api/delegators/me/training-requests/${id}/${action}`,
-      { note },
-    ),
-  listTrainedRepresentatives: () =>
-    apiClient.get<Representative[]>("/api/delegators/me/trained-representatives"),
+  decideDelegatorRequest: (id: string, action: 'approve' | 'reject', note: string) =>
+    apiClient.patch<TrainingRequest>(`/api/delegators/me/training-requests/${id}/${action}`, { note }),
+  listTrainedRepresentatives: () => apiClient.get<Representative[]>('/api/delegators/me/trained-representatives'),
   markRepresentativeAsAgent: (id: string, note: string) =>
     apiClient.patch<Agent>(`/api/delegators/me/representatives/${id}/mark-as-agent`, {
       note,
     }),
-  listAgents: () => apiClient.get<Agent[]>("/api/delegators/me/agents"),
+  listAgents: () => apiClient.get<Agent[]>('/api/delegators/me/agents'),
 
-  listUsers: () => apiClient.get<User[]>("/api/admin/users"),
+  listUsers: () => apiClient.get<User[]>('/api/admin/users'),
   setUserEnabled: (id: string, enabled: boolean) =>
-    apiClient.patch<User>(`/api/admin/users/${id}/${enabled ? "activate" : "deactivate"}`),
-  createRepresentative: (body: Record<string, unknown>) =>
-    apiClient.post<User>("/api/admin/representatives", body),
-  createDelegator: (body: Record<string, unknown>) =>
-    apiClient.post<User>("/api/admin/delegators", body),
-  createInstitute: (body: Record<string, unknown>) =>
-    apiClient.post<User>("/api/admin/training-institutes", body),
+    apiClient.patch<User>(`/api/admin/users/${id}/${enabled ? 'activate' : 'deactivate'}`),
+  createRepresentative: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/representatives', body),
+  createDelegator: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/delegators', body),
+  createInstitute: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/training-institutes', body),
 
-  listInstituteEnrollments: () =>
-    apiClient.get<Enrollment[]>("/api/institutes/me/enrollments"),
-  listInstituteTrainings: () =>
-    apiClient.get<Training[]>("/api/institutes/me/trainings"),
+  listInstituteEnrollments: () => apiClient.get<Enrollment[]>('/api/institutes/me/enrollments'),
+  listInstituteTrainings: () => apiClient.get<Training[]>('/api/institutes/me/trainings'),
   createInstituteTraining: (body: {
-    instituteId: string;
     title: string;
     description: string;
     startDate: string;
     endDate: string;
     capacity: number;
-    accessType: "PRIVATE" | "PUBLIC" | "STAFF";
+    accessType: 'PRIVATE' | 'PUBLIC' | 'STAFF';
     staffAccessPassword?: string;
-  }) => apiClient.post<Training>("/api/institutes/me/trainings", body),
-  listAssessments: () => apiClient.get<Assessment[]>("/api/assessments"),
-  submitAssessment: (body: {
-    enrollmentId: string;
-    score: number;
-    remarks: string;
-    assessmentDate: string;
-  }) => apiClient.post<Assessment>("/api/assessments", body),
+  }) => apiClient.post<Training>('/api/institutes/me/trainings', body),
+  listAssessments: () => apiClient.get<Assessment[]>('/api/assessments'),
+  submitAssessment: (body: { enrollmentId: string; score: number; remarks: string; assessmentDate: string }) =>
+    apiClient.post<Assessment>('/api/assessments', body),
 
-  listPublicTrainings: () =>
-    apiClient.get<Training[]>("/api/public/trainings"),
+  listPublicTrainings: () => apiClient.get<Training[]>('/api/public/trainings'),
   getPublicTrainingSummary: () =>
-    apiClient.get<PublicTrainingSummary>("/api/public/trainings/summary", {
-      headers: { "X-Public-Trainee-Id": getPublicTraineeId() },
+    apiClient.get<PublicTrainingSummary>('/api/public/trainings/summary', {
+      headers: { 'X-Public-Trainee-Id': getPublicTraineeId() },
     }),
   enrollPublicTrainee: (trainingId: string) =>
-    apiClient.post(
-      `/api/public/trainings/${trainingId}/enroll`,
-      null,
-      { headers: { "X-Public-Trainee-Id": getPublicTraineeId() } },
-    ),
-  listStaffTrainings: () =>
-    apiClient.get<Training[]>("/api/staff/trainings"),
-  accessStaffTraining: (body: {
-    name: string;
-    department: string;
-    trainingPassword: string;
-  }) => apiClient.post<Training>("/api/staff/trainings/access", body),
+    apiClient.post(`/api/public/trainings/${trainingId}/enroll`, null, {
+      headers: { 'X-Public-Trainee-Id': getPublicTraineeId() },
+    }),
+  listStaffTrainings: () => apiClient.get<Training[]>('/api/staff/trainings'),
+  accessStaffTraining: (body: { name: string; department: string; trainingPassword: string }) =>
+    apiClient.post<Training>('/api/staff/trainings/access', body),
 };

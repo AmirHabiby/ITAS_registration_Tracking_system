@@ -61,6 +61,9 @@ public class TrainingService {
 
     @Transactional
     public Training create(TrainingRequestDto request) {
+        if (request.instituteId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Institute ID is required");
+        }
         if (!trainingInstituteRepository.existsById(request.instituteId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Institute not found");
         }
@@ -94,9 +97,15 @@ public class TrainingService {
         UUID trainingInstituteProfileId = trainingInstituteRepository.findByUserId(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training institute not found"))
             .getId();
-        if (!trainingInstituteProfileId.equals(request.instituteId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only create trainings for your own institute");
-        }
-        return create(request);
+        TrainingRequestDto instituteRequest = new TrainingRequestDto(
+            trainingInstituteProfileId,
+            request.title(),
+            request.description(),
+            request.startDate(),
+            request.endDate(),
+            request.capacity(),
+            request.accessType(),
+            request.staffAccessPassword());
+        return create(instituteRequest);
     }
 }
