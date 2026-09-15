@@ -21,11 +21,15 @@ import { InstituteDashboardPage } from "../pages/institute/InstituteDashboardPag
 import { InstituteTrainingsPage } from "../pages/institute/InstituteTrainingsPage";
 import { InstituteEnrollmentsPage } from "../pages/institute/InstituteEnrollmentsPage";
 import { InstituteAssessmentsPage } from "../pages/institute/InstituteAssessmentsPage";
+import { PublicTrainingsPage } from "../pages/public/PublicTrainingsPage";
+import { StaffTrainingsPage } from "../pages/staff/StaffTrainingsPage";
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/public/trainings" element={<PublicTrainingsPage />} />
+      <Route path="/staff/trainings" element={<StaffTrainingsPage />} />
       <Route
         path="/"
         element={

@@ -33,6 +33,13 @@ public class TrainingService {
     }
 
     @Transactional(readOnly = true)
+    public List<Training> listPublic() {
+        return trainingRepository.findByActiveTrueAndAccessTypeAndStatusOrderByStartDateAsc(
+            TrainingAccessType.PUBLIC,
+            TrainingStatus.PUBLISHED);
+    }
+
+    @Transactional(readOnly = true)
     public List<Training> listForInstitute(UUID userId) {
         UUID trainingInstituteProfileId = trainingInstituteRepository.findByUserId(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training institute not found"))

@@ -111,6 +111,22 @@ body {
   background: #111111 !important;
 }
 
+.public-training-sidebar.ant-layout-sider {
+  background: #ffffff !important;
+  color: var(--ink);
+}
+
+.public-training-sidebar .ant-typography,
+.public-training-sidebar .ant-statistic-title,
+.public-training-sidebar .ant-statistic-content,
+.public-training-sidebar .ant-statistic-content-value {
+  color: var(--ink) !important;
+}
+
+.public-training-sidebar .ant-statistic-title {
+  color: var(--muted-ink) !important;
+}
+
 .ant-menu-dark,
 .ant-menu-dark .ant-menu-sub {
   background: #111111 !important;
@@ -142,6 +158,10 @@ body {
 .ant-table,
 .ant-table-container {
   color: var(--ink);
+}
+
+.login-form .ant-form-item-label {
+  padding-bottom: 2px;
 }
 
 /* Dashboard metric cards use a monochrome range for quick visual scanning. */

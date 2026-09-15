@@ -72,6 +72,9 @@ public class SecurityConfig {
                     "/api/auth/logout"
                 ).permitAll()
 
+                .requestMatchers("/api/public/trainings/**").permitAll()
+                .requestMatchers("/api/staff/trainings/**").permitAll()
+
                 // Everything else requires authentication
                 .anyRequest().authenticated())
 
@@ -93,7 +96,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-            List.of("http://localhost:5173")
+            List.of(
+                "http://localhost:5173",
+                "http://127.0.0.1:5173"
+            )
         );
 
         configuration.setAllowedMethods(
@@ -110,7 +116,8 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(
             List.of(
                 "Authorization",
-                "Content-Type"
+                "Content-Type",
+                "X-Public-Trainee-Id"
             )
         );
 

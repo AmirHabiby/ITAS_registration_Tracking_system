@@ -1,5 +1,5 @@
 import { Button, Card, Form, Input, message, Typography } from "antd";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 export function LoginPage() {
@@ -19,10 +19,18 @@ export function LoginPage() {
         padding: 24,
       }}
     >
-      <Card style={{ width: 420 }}>
-        <Typography.Title level={3}>Sign in</Typography.Title>
+      <Card style={{ width: "100%", maxWidth: 360, minHeight: 420 }}>
+        <Typography.Title level={3} style={{ textAlign: "center" }}>
+          Sign in
+        </Typography.Title>
+        <Typography.Paragraph type="secondary" style={{ textAlign: "center", fontSize: 12 }}>
+          Or go to <Link to="/public/trainings">public</Link> or <Link to="/staff/trainings">staff</Link> trainings
+        </Typography.Paragraph>
         <Form
+          className="login-form"
           layout="vertical"
+          requiredMark={false}
+          style={{ marginTop: 8 }}
           onFinish={async (values) => {
             try {
               await login(values.username, values.password);
@@ -36,6 +44,7 @@ export function LoginPage() {
           <Form.Item
             name="username"
             label="Username"
+            style={{ marginBottom: 16 }}
             rules={[{ required: true }]}
           >
             <Input />
@@ -43,6 +52,7 @@ export function LoginPage() {
           <Form.Item
             name="password"
             label="Password"
+            style={{ marginBottom: 16 }}
             rules={[{ required: true }]}
           >
             <Input.Password />

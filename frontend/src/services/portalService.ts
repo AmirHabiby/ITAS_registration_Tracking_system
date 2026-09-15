@@ -84,6 +84,22 @@ export type Assessment = {
   assessmentDate: string;
 };
 
+export type PublicTrainingSummary = {
+  totalTrainings: number;
+  enrolledTrainings: number;
+  remainingTrainings: number;
+};
+
+const publicTraineeStorageKey = "rtts.publicTraineeId";
+
+function getPublicTraineeId() {
+  const storedId = localStorage.getItem(publicTraineeStorageKey);
+  if (storedId) return storedId;
+  const traineeId = crypto.randomUUID();
+  localStorage.setItem(publicTraineeStorageKey, traineeId);
+  return traineeId;
+}
+
 export const portalService = {
   listAvailableTrainings: () =>
     apiClient.get<Training[]>("/api/representatives/me/trainings"),
@@ -147,4 +163,24 @@ export const portalService = {
     remarks: string;
     assessmentDate: string;
   }) => apiClient.post<Assessment>("/api/assessments", body),
+
+  listPublicTrainings: () =>
+    apiClient.get<Training[]>("/api/public/trainings"),
+  getPublicTrainingSummary: () =>
+    apiClient.get<PublicTrainingSummary>("/api/public/trainings/summary", {
+      headers: { "X-Public-Trainee-Id": getPublicTraineeId() },
+    }),
+  enrollPublicTrainee: (trainingId: string) =>
+    apiClient.post(
+      `/api/public/trainings/${trainingId}/enroll`,
+      null,
+      { headers: { "X-Public-Trainee-Id": getPublicTraineeId() } },
+    ),
+  listStaffTrainings: () =>
+    apiClient.get<Training[]>("/api/staff/trainings"),
+  accessStaffTraining: (body: {
+    name: string;
+    department: string;
+    trainingPassword: string;
+  }) => apiClient.post<Training>("/api/staff/trainings/access", body),
 };
