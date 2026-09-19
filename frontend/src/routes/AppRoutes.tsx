@@ -9,6 +9,9 @@ import { AdminUsersPage } from "../pages/admin/AdminUsersPage";
 import { AdminRepresentativesPage } from "../pages/admin/AdminRepresentativesPage";
 import { AdminDelegatorsPage } from "../pages/admin/AdminDelegatorsPage";
 import { AdminTrainingInstitutesPage } from "../pages/admin/AdminTrainingInstitutesPage";
+import { AdminFirmsPage } from "../pages/admin/AdminFirmsPage";
+import { FirmDashboardPage } from "../pages/firm/FirmDashboardPage";
+import { FirmStaffPage } from "../pages/firm/FirmStaffPage";
 import { RepresentativeDashboardPage } from "../pages/representative/RepresentativeDashboardPage";
 import { RepresentativeTrainingsPage } from "../pages/representative/RepresentativeTrainingsPage";
 import { RepresentativeRequestsPage } from "../pages/representative/RepresentativeRequestsPage";
@@ -111,6 +114,7 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/admin/firms" element={<ProtectedRoute><RoleGate roles={["SYSTEM_ADMIN"]}><RoleLayout><AdminFirmsPage /></RoleLayout></RoleGate></ProtectedRoute>} />
 
       <Route
         path="/representative/dashboard"
@@ -258,6 +262,8 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/firm/dashboard" element={<ProtectedRoute><RoleGate roles={["FIRM_ADMIN"]}><RoleLayout><FirmDashboardPage /></RoleLayout></RoleGate></ProtectedRoute>} />
+      <Route path="/firm/staff" element={<ProtectedRoute><RoleGate roles={["FIRM_ADMIN"]}><RoleLayout><FirmStaffPage /></RoleLayout></RoleGate></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

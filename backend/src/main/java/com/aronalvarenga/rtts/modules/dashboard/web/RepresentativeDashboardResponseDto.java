@@ -7,6 +7,7 @@ public record RepresentativeDashboardResponseDto(
     long myPendingRequests,
     long myApprovedTrainings,
     long myCompletedTrainings,
-    RepresentativeStatus currentRepresentativeStatus
+    RepresentativeStatus currentRepresentativeStatus,
+    String firmName
 ) {
 }

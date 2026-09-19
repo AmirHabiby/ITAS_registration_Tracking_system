@@ -6,6 +6,7 @@ const roleHomePath: Record<string, string> = {
   REPRESENTATIVE: "/representative/dashboard",
   DELEGATOR: "/delegator/dashboard",
   TRAINING_INSTITUTE: "/institute/dashboard",
+  FIRM_ADMIN: "/firm/dashboard",
 };
 
 export function RoleHomeRedirect() {

@@ -1,6 +1,7 @@
 package com.aronalvarenga.rtts.modules.user.web;
 
 import com.aronalvarenga.rtts.modules.user.application.AdminService;
+import com.aronalvarenga.rtts.modules.firm.web.FirmResponseDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,18 @@ public class AdminController {
     @PostMapping("/representatives")
     public UserResponseDto createRepresentative(@Valid @RequestBody AdminCreateRepresentativeRequest request) {
         return UserMapper.toDto(adminService.createRepresentative(request));
+    }
+
+    @PostMapping("/firms")
+    public UserResponseDto createFirm(@Valid @RequestBody AdminCreateFirmRequest request) {
+        return UserMapper.toDto(adminService.createFirm(request));
+    }
+
+    @GetMapping("/firms")
+    public List<FirmResponseDto> listFirms() {
+        return adminService.listFirms().stream()
+            .map(firm -> new FirmResponseDto(firm.getId(), firm.getName(), firm.getEmail(), firm.getDescription(), firm.isActive()))
+            .toList();
     }
 
     @PostMapping("/delegators")

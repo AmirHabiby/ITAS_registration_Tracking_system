@@ -24,6 +24,7 @@ const menus: Record<string, { key: string; label: string; path: string }[]> = {
       label: "Training Institutes",
       path: "/admin/training-institutes",
     },
+    { key: "/admin/firms", label: "Firms", path: "/admin/firms" },
   ],
   REPRESENTATIVE: [
     {
@@ -86,6 +87,10 @@ const menus: Record<string, { key: string; label: string; path: string }[]> = {
       label: "Assessments",
       path: "/institute/assessments",
     },
+  ],
+  FIRM_ADMIN: [
+    { key: "/firm/dashboard", label: "Dashboard", path: "/firm/dashboard" },
+    { key: "/firm/staff", label: "Staff", path: "/firm/staff" },
   ],
 };
 

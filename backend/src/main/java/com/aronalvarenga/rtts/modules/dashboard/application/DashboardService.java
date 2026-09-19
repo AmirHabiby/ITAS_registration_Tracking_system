@@ -3,6 +3,11 @@ package com.aronalvarenga.rtts.modules.dashboard.application;
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationRepository;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegationStatus;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.FirmAgentAssignmentRepository;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.FirmDelegationRepository;
+import com.aronalvarenga.rtts.modules.agentdelegation.domain.FirmRepository;
+import com.aronalvarenga.rtts.modules.firm.domain.FirmAdminProfileRepository;
+import com.aronalvarenga.rtts.modules.firm.web.FirmDashboardResponseDto;
 import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResultRepository;
 import com.aronalvarenga.rtts.modules.dashboard.domain.AuditLogRepository;
 import com.aronalvarenga.rtts.modules.dashboard.web.AdminDashboardResponseDto;
@@ -32,6 +37,10 @@ public class DashboardService {
     private final EnrollmentRepository enrollmentRepository;
     private final AuditLogRepository auditLogRepository;
     private final AgentDelegationRepository agentDelegationRepository;
+    private final FirmAdminProfileRepository firmAdminProfileRepository;
+    private final FirmAgentAssignmentRepository firmAgentAssignmentRepository;
+    private final FirmDelegationRepository firmDelegationRepository;
+    private final FirmRepository firmRepository;
 
     public DashboardService(
         UserAccountRepository userAccountRepository,
@@ -40,7 +49,11 @@ public class DashboardService {
         TrainingRequestRepository trainingRequestRepository,
         EnrollmentRepository enrollmentRepository,
         AuditLogRepository auditLogRepository,
-        AgentDelegationRepository agentDelegationRepository
+        AgentDelegationRepository agentDelegationRepository,
+        FirmAdminProfileRepository firmAdminProfileRepository,
+        FirmAgentAssignmentRepository firmAgentAssignmentRepository,
+        FirmDelegationRepository firmDelegationRepository,
+        FirmRepository firmRepository
     ) {
         this.userAccountRepository = userAccountRepository;
         this.representativeRepository = representativeRepository;
@@ -49,6 +62,10 @@ public class DashboardService {
         this.enrollmentRepository = enrollmentRepository;
         this.auditLogRepository = auditLogRepository;
         this.agentDelegationRepository = agentDelegationRepository;
+        this.firmAdminProfileRepository = firmAdminProfileRepository;
+        this.firmAgentAssignmentRepository = firmAgentAssignmentRepository;
+        this.firmDelegationRepository = firmDelegationRepository;
+        this.firmRepository = firmRepository;
     }
 
     @Transactional(readOnly = true)
@@ -90,15 +107,32 @@ public class DashboardService {
 
     @Transactional(readOnly = true)
     public RepresentativeDashboardResponseDto representativeDashboard(UUID userId) {
-        UUID representativeId = representativeRepository.findByUserId(userId)
+        var representative = representativeRepository.findByUserId(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Representative not found"))
-            .getId();
+            ;
+        UUID representativeId = representative.getId();
         return new RepresentativeDashboardResponseDto(
             trainingRepository.countByActiveTrue(),
             trainingRequestRepository.findAll().stream().filter(request -> request.getRepresentativeId().equals(representativeId) && request.getStatus() == TrainingRequestStatus.PENDING).count(),
             trainingRequestRepository.findAll().stream().filter(request -> request.getRepresentativeId().equals(representativeId) && request.getStatus() == TrainingRequestStatus.APPROVED).count(),
             enrollmentRepository.findByRepresentativeIdOrderByAssessedAtDesc(representativeId).stream().filter(enrollment -> enrollment.getStatus() == EnrollmentStatus.COMPLETED).count(),
-            representativeRepository.findById(representativeId).map(com.aronalvarenga.rtts.modules.representatives.domain.Representative::getStatus).orElse(RepresentativeStatus.REGISTERED)
+            representative.getStatus(),
+            representative.getFirmId() == null ? null : firmRepository.findById(representative.getFirmId()).map(firm -> firm.getName()).orElse(null)
         );
+    }
+
+    @Transactional(readOnly = true)
+    public FirmDashboardResponseDto firmAdminDashboard(UUID userId) {
+        UUID firmId = firmAdminProfileRepository.findByUserId(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Firm admin profile not found"))
+            .getFirmId();
+        long total = representativeRepository.countByFirmId(firmId);
+        long trained = representativeRepository.countByFirmIdAndStatus(firmId, RepresentativeStatus.TRAINED);
+        long inTraining = representativeRepository.countByFirmIdAndStatus(firmId, RepresentativeStatus.IN_TRAINING);
+        long assigned = representativeRepository.findByFirmIdOrderByFullNameAsc(firmId).stream()
+            .filter(rep -> firmAgentAssignmentRepository.findByRepresentativeProfileIdAndRevokedAtIsNull(rep.getId()).isPresent())
+            .count();
+        return new FirmDashboardResponseDto(total, trained, inTraining, assigned, trained - assigned,
+            firmDelegationRepository.findFirstByFirmIdAndRevokedAtIsNullOrderByDelegatedAtDesc(firmId).isPresent());
     }
 }

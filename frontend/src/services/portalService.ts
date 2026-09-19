@@ -51,6 +51,32 @@ export type Representative = {
   fullName: string;
   email: string;
   status: string;
+  firmId?: string | null;
+};
+
+export type FirmStaff = Representative & { firmId: string };
+export type Firm = {
+  id: string;
+  name: string;
+  email: string;
+  description: string | null;
+  active: boolean;
+};
+export type FirmDelegation = {
+  id: string;
+  firmId: string;
+  delegatorProfileId: string;
+  delegatedAt: string;
+  revokedAt: string | null;
+  reason: string | null;
+};
+export type FirmDashboard = {
+  totalStaff: number;
+  trainedStaff: number;
+  staffInTraining: number;
+  assignedStaff: number;
+  availableTrainedStaff: number;
+  delegated: boolean;
 };
 
 export type Agent = {
@@ -122,6 +148,9 @@ export const portalService = {
       note,
     }),
   listAgents: () => apiClient.get<Agent[]>('/api/delegators/me/agents'),
+  listFirms: () => apiClient.get<{ id: string; name: string; email: string; description: string; active: boolean }[]>('/api/delegators/me/firms'),
+  delegateFirm: (id: string, note: string) => apiClient.patch<FirmDelegation>(`/api/delegators/me/firms/${id}/delegate`, { note }),
+  revokeFirm: (id: string) => apiClient.patch<FirmDelegation>(`/api/delegators/me/firms/${id}/revoke`),
 
   listUsers: () => apiClient.get<User[]>('/api/admin/users'),
   setUserEnabled: (id: string, enabled: boolean) =>
@@ -129,6 +158,15 @@ export const portalService = {
   createRepresentative: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/representatives', body),
   createDelegator: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/delegators', body),
   createInstitute: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/training-institutes', body),
+  createFirm: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/firms', body),
+  listAdminFirms: () => apiClient.get<Firm[]>('/api/admin/firms'),
+
+  firmDashboard: () => apiClient.get<FirmDashboard>('/api/dashboard/me'),
+  listFirmStaff: () => apiClient.get<FirmStaff[]>('/api/firm-admin/staff'),
+  createFirmStaff: (body: Record<string, unknown>) => apiClient.post<User>('/api/firm-admin/staff', body),
+  getFirmDelegation: () => apiClient.get<FirmDelegation | null>('/api/firm-admin/delegation'),
+  assignFirmAgent: (id: string, reason: string) => apiClient.post(`/api/firm-admin/staff/${id}/assign-agent`, { reason }),
+  revokeFirmAssignment: (id: string) => apiClient.patch(`/api/firm-admin/assignments/${id}/revoke`),
 
   listInstituteEnrollments: () => apiClient.get<Enrollment[]>('/api/institutes/me/enrollments'),
   listInstituteTrainings: () => apiClient.get<Training[]>('/api/institutes/me/trainings'),

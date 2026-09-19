@@ -43,7 +43,7 @@ public class DashboardController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','REPRESENTATIVE','DELEGATOR','TRAINING_INSTITUTE')")
+    @PreAuthorize("hasAnyRole('SYSTEM_ADMIN','REPRESENTATIVE','DELEGATOR','TRAINING_INSTITUTE','FIRM_ADMIN')")
     public Object me(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"))
@@ -56,6 +56,7 @@ public class DashboardController {
             case DELEGATOR -> delegatorDashboard();
             case TRAINING_INSTITUTE -> instituteDashboard();
             case REPRESENTATIVE -> dashboardService.representativeDashboard(userId);
+            case FIRM_ADMIN -> dashboardService.firmAdminDashboard(userId);
         };
     }
 

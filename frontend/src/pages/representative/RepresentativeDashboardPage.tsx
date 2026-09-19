@@ -8,6 +8,7 @@ type Dashboard = {
   myApprovedTrainings: number;
   myCompletedTrainings: number;
   currentRepresentativeStatus: string;
+  firmName: string | null;
 };
 
 export function RepresentativeDashboardPage() {
@@ -27,14 +28,28 @@ export function RepresentativeDashboardPage() {
       myApprovedTrainings: 0,
       myCompletedTrainings: 0,
       currentRepresentativeStatus: "REGISTERED",
+      firmName: null,
     } satisfies Dashboard);
+
+  const statistics = [
+    ["Firm", dashboard.firmName ?? "No firm assigned"],
+    ["Available trainings", dashboard.availableTrainings],
+    ["My pending requests", dashboard.myPendingRequests],
+    ["My approved trainings", dashboard.myApprovedTrainings],
+    ["My completed trainings", dashboard.myCompletedTrainings],
+    ["Current representative status", dashboard.currentRepresentativeStatus],
+  ] as const;
 
   return (
     <Row gutter={16}>
-      {Object.entries(dashboard).map(([key, value]) => (
+      {statistics.map(([key, value]) => (
         <Col span={8} key={key}>
           <Card>
-            <Statistic title={key} value={value} />
+            <Statistic
+              title={key}
+              value={value ?? "-"}
+              valueStyle={key === "Firm" ? { fontSize: 20 } : undefined}
+            />
           </Card>
         </Col>
       ))}

@@ -1,6 +1,8 @@
 package com.aronalvarenga.rtts.modules.delegator.web;
 
 import com.aronalvarenga.rtts.modules.delegator.application.DelegatorService;
+import com.aronalvarenga.rtts.modules.firm.web.FirmDelegationResponseDto;
+import com.aronalvarenga.rtts.modules.firm.web.FirmResponseDto;
 import com.aronalvarenga.rtts.modules.requests.web.TrainingRequestMapper;
 import com.aronalvarenga.rtts.modules.requests.web.TrainingRequestResponseDto;
 import com.aronalvarenga.rtts.modules.representatives.web.RepresentativeMapper;
@@ -78,5 +80,24 @@ public class DelegatorController {
     @GetMapping("/agents")
     public List<DelegatedAgentResponseDto> agents() {
         return delegatorService.agents().stream().map(DelegatedAgentMapper::toDto).toList();
+    }
+
+    @GetMapping("/firms")
+    public List<FirmResponseDto> firms() {
+        return delegatorService.firms().stream()
+            .map(firm -> new FirmResponseDto(firm.getId(), firm.getName(), firm.getEmail(), firm.getDescription(), firm.isActive()))
+            .toList();
+    }
+
+    @PatchMapping("/firms/{id}/delegate")
+    public FirmDelegationResponseDto delegateFirm(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt, @RequestBody(required = false) DelegatorDecisionRequest request) {
+        var delegation = delegatorService.delegateFirm(id, jwt, request);
+        return new FirmDelegationResponseDto(delegation.getId(), delegation.getFirmId(), delegation.getDelegatorProfileId(), delegation.getDelegatedAt(), delegation.getRevokedAt(), delegation.getReason());
+    }
+
+    @PatchMapping("/firms/{id}/revoke")
+    public FirmDelegationResponseDto revokeFirm(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        var delegation = delegatorService.revokeFirm(id, jwt);
+        return new FirmDelegationResponseDto(delegation.getId(), delegation.getFirmId(), delegation.getDelegatorProfileId(), delegation.getDelegatedAt(), delegation.getRevokedAt(), delegation.getReason());
     }
 }

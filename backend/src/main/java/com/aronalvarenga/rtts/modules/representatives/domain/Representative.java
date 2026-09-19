@@ -28,6 +28,9 @@ public class Representative extends AuditableEntity {
     @Column(name = "user_id", unique = true)
     private UUID userId;
 
+    @Column(name = "firm_id")
+    private UUID firmId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RepresentativeStatus status = RepresentativeStatus.REGISTERED;
@@ -56,6 +59,10 @@ public class Representative extends AuditableEntity {
         return userId;
     }
 
+    public UUID getFirmId() {
+        return firmId;
+    }
+
     public RepresentativeStatus getStatus() {
         return status;
     }
@@ -74,6 +81,10 @@ public class Representative extends AuditableEntity {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
+    }
+
+    public void setFirmId(UUID firmId) {
+        this.firmId = firmId;
     }
 
     public void setStatus(RepresentativeStatus status) {

@@ -8,4 +8,7 @@ public interface RepresentativeRepository extends JpaRepository<Representative, 
 	long countByStatus(RepresentativeStatus status);
 	List<Representative> findByStatusOrderByFullNameAsc(RepresentativeStatus status);
 	java.util.Optional<Representative> findByUserId(UUID userId);
+	List<Representative> findByFirmIdOrderByFullNameAsc(UUID firmId);
+	long countByFirmId(UUID firmId);
+	long countByFirmIdAndStatus(UUID firmId, RepresentativeStatus status);
 }

@@ -31,6 +31,9 @@ public class AuthService {
     }
 
     public CurrentUserResponseDto currentUser(Jwt jwt) {
+        if (jwt == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
         UserAccount userAccount = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token"));
         return new CurrentUserResponseDto(userAccount.getId(), userAccount.getUsername(), userAccount.getRole().name(), userAccount.getDisplayName(), userAccount.isEnabled());
