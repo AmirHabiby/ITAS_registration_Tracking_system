@@ -1,6 +1,7 @@
-import { Alert, Button, Card, Col, Layout, List, Row, Space, Statistic, Tag, Typography, message } from "antd";
+import { Alert, Button, Card, Col, Collapse, Layout, List, Row, Space, Statistic, Tag, Typography, message } from "antd";
 import { useEffect, useState } from "react";
-import { portalService, type PublicTrainingSummary, type Training } from "../../services/portalService";
+import { portalService, type PublicTrainingSummary, type Training, type TrainingMaterial } from "../../services/portalService";
+import axios from "axios";
 
 const { Content, Sider } = Layout;
 
@@ -17,6 +18,8 @@ export function PublicTrainingsPage() {
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [enrolledTrainingIds, setEnrolledTrainingIds] = useState<Set<string>>(new Set());
+  const [materials, setMaterials] = useState<Record<string, TrainingMaterial[]>>({});
+  const [materialsLoading, setMaterialsLoading] = useState(true);
 
   async function loadPublicTrainings() {
     try {
@@ -25,12 +28,24 @@ export function PublicTrainingsPage() {
         portalService.listPublicTrainings(),
         portalService.getPublicTrainingSummary(),
       ]);
-      setTrainings(trainingResponse.data.filter((training) => training.accessType === "PUBLIC"));
+      const publicTrainings = trainingResponse.data.filter((training) => training.accessType === "PUBLIC");
+      setTrainings(publicTrainings);
       setSummary(summaryResponse.data);
+      const enrollmentResponse = await portalService.listPublicEnrollments();
+      const enrolledIds = new Set(enrollmentResponse.data.map((enrollment) => enrollment.trainingId));
+      setEnrolledTrainingIds(enrolledIds);
+      const materialEntries = await Promise.all(
+        [...enrolledIds].map(async (trainingId) => {
+          const response = await portalService.listPublicTrainingMaterials(trainingId);
+          return [trainingId, response.data] as const;
+        }),
+      );
+      setMaterials(Object.fromEntries(materialEntries));
     } catch {
       setError("Unable to load public trainings.");
     } finally {
       setLoading(false);
+      setMaterialsLoading(false);
     }
   }
 
@@ -43,11 +58,18 @@ export function PublicTrainingsPage() {
     try {
       await portalService.enrollPublicTrainee(trainingId);
       setEnrolledTrainingIds((current) => new Set(current).add(trainingId));
+      setMaterials((current) => ({ ...current, [trainingId]: [] }));
       const summaryResponse = await portalService.getPublicTrainingSummary();
       setSummary(summaryResponse.data);
       message.success("Enrollment submitted.");
-    } catch {
-      message.error("Unable to enroll in this training.");
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        setEnrolledTrainingIds((current) => new Set(current).add(trainingId));
+        setMaterials((current) => ({ ...current, [trainingId]: [] }));
+        message.info("You are already enrolled in this training.");
+      } else {
+        message.error("Unable to enroll in this training.");
+      }
     } finally {
       setEnrollingId(null);
     }
@@ -95,7 +117,7 @@ export function PublicTrainingsPage() {
                           disabled={enrolled || training.capacity <= 0}
                           onClick={() => void enroll(training.id)}
                         >
-                          {enrolled ? "Enrolled" : "Enroll now"}
+                          {enrollingId === training.id ? "Enrolling..." : enrolled ? "Enrolled" : training.capacity <= 0 ? "Fully booked" : "Enroll in training"}
                         </Button>
                       }
                     >
@@ -106,6 +128,33 @@ export function PublicTrainingsPage() {
                           <Col xs={24} sm={8}><Typography.Text type="secondary">End date</Typography.Text><br />{training.endDate}</Col>
                           <Col xs={24} sm={8}><Typography.Text type="secondary">Capacity</Typography.Text><br /><Tag>{training.capacity}</Tag></Col>
                         </Row>
+                        {enrolled && (
+                          <Card size="small" title="Course materials" loading={materialsLoading}>
+                            {(materials[training.id] ?? []).length === 0 ? (
+                              <Typography.Text type="secondary">No materials have been uploaded yet.</Typography.Text>
+                            ) : (
+                              <Collapse
+                                items={Array.from(new Set((materials[training.id] ?? []).map((material) => material.weekNumber)))
+                                  .sort((a, b) => a - b)
+                                  .map((weekNumber) => ({
+                                    key: weekNumber,
+                                    label: `Week ${weekNumber}`,
+                                    children: (
+                                      <List
+                                        size="small"
+                                        dataSource={(materials[training.id] ?? []).filter((material) => material.weekNumber === weekNumber)}
+                                        renderItem={(material) => (
+                                          <List.Item actions={[<Button type="link" href={material.fileUrl} target="_blank" rel="noreferrer">Review material</Button>]}>
+                                            <List.Item.Meta title={material.title} description={material.description ?? material.materialType} />
+                                          </List.Item>
+                                        )}
+                                      />
+                                    ),
+                                  }))}
+                              />
+                            )}
+                          </Card>
+                        )}
                       </Space>
                     </Card>
                   </List.Item>

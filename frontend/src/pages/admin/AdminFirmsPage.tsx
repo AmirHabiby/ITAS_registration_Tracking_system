@@ -5,6 +5,7 @@ import { portalService, type Firm } from "../../services/portalService";
 export function AdminFirmsPage() {
   const [firms, setFirms] = useState<Firm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadFirms() {
@@ -21,12 +22,15 @@ export function AdminFirmsPage() {
   useEffect(() => { void loadFirms(); }, []);
 
   async function submit(values: Record<string, unknown>) {
+    setSubmitting(true);
     try {
       await portalService.createFirm({ ...values, enabled: values.enabled ?? true });
       message.success("Firm and Firm Admin created.");
       await loadFirms();
     } catch {
       message.error("Unable to create firm.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -43,7 +47,7 @@ export function AdminFirmsPage() {
           <Form.Item name="adminFullName" label="Admin full name" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="adminEmail" label="Admin email" rules={[{ required: true, type: "email" }]}><Input /></Form.Item>
           <Form.Item name="enabled" label="Enabled" valuePropName="checked"><Switch /></Form.Item>
-          <Button type="primary" htmlType="submit">Create</Button>
+          <Button type="primary" htmlType="submit" loading={submitting}>{submitting ? "Creating firm..." : "Create firm and admin"}</Button>
         </Form>
       </Card>
       <Card title="Firms">

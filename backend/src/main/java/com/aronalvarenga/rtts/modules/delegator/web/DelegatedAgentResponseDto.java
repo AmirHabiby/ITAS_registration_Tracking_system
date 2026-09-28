@@ -7,6 +7,7 @@ import java.util.UUID;
 public record DelegatedAgentResponseDto(
     UUID delegationId,
     UUID representativeId,
+    String representativeName,
     UUID delegatorId,
     AgentDelegationStatus status,
     Instant delegatedAt,

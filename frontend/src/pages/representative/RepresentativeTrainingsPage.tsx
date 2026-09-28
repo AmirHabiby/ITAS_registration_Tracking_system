@@ -6,13 +6,20 @@ import { portalService, type Training } from "../../services/portalService";
 export function RepresentativeTrainingsPage() {
   const { user } = useAuth();
   const [trainings, setTrainings] = useState<Training[]>([]);
+  const [requestStatuses, setRequestStatuses] = useState<Record<string, string>>({});
+  const [requestingId, setRequestingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function loadTrainings() {
     try {
       setError(null);
-      setTrainings((await portalService.listAvailableTrainings()).data);
+      const [trainingResponse, requestResponse] = await Promise.all([
+        portalService.listAvailableTrainings(),
+        portalService.listMyRequests(),
+      ]);
+      setTrainings(trainingResponse.data);
+      setRequestStatuses(Object.fromEntries(requestResponse.data.map((request) => [request.trainingId, request.status])));
     } catch {
       setError("Unable to load available trainings.");
     } finally {
@@ -24,11 +31,15 @@ export function RepresentativeTrainingsPage() {
 
   async function requestTraining(trainingId: string) {
     if (!user?.id) return;
+    setRequestingId(trainingId);
     try {
-      await portalService.requestTraining(trainingId, user.id);
+      const response = await portalService.requestTraining(trainingId, user.id);
+      setRequestStatuses((current) => ({ ...current, [trainingId]: response.data.status || "PENDING" }));
       message.success("Training request submitted.");
     } catch {
       message.error("Unable to submit the training request.");
+    } finally {
+      setRequestingId(null);
     }
   }
 
@@ -42,7 +53,20 @@ export function RepresentativeTrainingsPage() {
         { title: "Capacity", dataIndex: "capacity" },
         { title: "Access", dataIndex: "accessType", render: (accessType: Training["accessType"]) => <Tag>{accessType}</Tag> },
         { title: "Status", render: (_, training) => <Tag color={training.active ? "green" : "default"}>{training.status}</Tag> },
-        { title: "Action", render: (_, training) => <Button type="primary" onClick={() => void requestTraining(training.id)} disabled={!training.active}>Request</Button> },
+        { title: "Action", render: (_, training) => {
+          const requestStatus = requestStatuses[training.id];
+          const pending = requestStatus === "PENDING";
+          const approved = requestStatus === "APPROVED";
+          const rejected = requestStatus === "REJECTED";
+          return <Button
+            type="primary"
+            loading={requestingId === training.id}
+            onClick={() => void requestTraining(training.id)}
+            disabled={!training.active || pending || approved || requestingId !== null}
+          >
+            {requestingId === training.id ? "Requesting..." : approved ? "Approved" : pending ? "Requested" : rejected ? "Request again" : !training.active ? "Unavailable" : "Request training"}
+          </Button>;
+        } },
       ]} />
     </Space>
   );

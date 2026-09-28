@@ -10,18 +10,22 @@ import { AdminRepresentativesPage } from "../pages/admin/AdminRepresentativesPag
 import { AdminDelegatorsPage } from "../pages/admin/AdminDelegatorsPage";
 import { AdminTrainingInstitutesPage } from "../pages/admin/AdminTrainingInstitutesPage";
 import { AdminFirmsPage } from "../pages/admin/AdminFirmsPage";
+import { AdminCreateTrainingPage } from "../pages/admin/AdminCreateTrainingPage";
 import { FirmDashboardPage } from "../pages/firm/FirmDashboardPage";
 import { FirmStaffPage } from "../pages/firm/FirmStaffPage";
 import { RepresentativeDashboardPage } from "../pages/representative/RepresentativeDashboardPage";
 import { RepresentativeTrainingsPage } from "../pages/representative/RepresentativeTrainingsPage";
 import { RepresentativeRequestsPage } from "../pages/representative/RepresentativeRequestsPage";
 import { RepresentativeResultsPage } from "../pages/representative/RepresentativeResultsPage";
+import { RepresentativeAssessmentsPage } from "../pages/representative/RepresentativeAssessmentsPage";
+import { RepresentativeAssessmentAttemptPage } from "../pages/representative/RepresentativeAssessmentAttemptPage";
 import { DelegatorDashboardPage } from "../pages/delegator/DelegatorDashboardPage";
 import { DelegatorTrainingRequestsPage } from "../pages/delegator/DelegatorTrainingRequestsPage";
 import { DelegatorTrainedRepresentativesPage } from "../pages/delegator/DelegatorTrainedRepresentativesPage";
 import { DelegatorAgentsPage } from "../pages/delegator/DelegatorAgentsPage";
 import { InstituteDashboardPage } from "../pages/institute/InstituteDashboardPage";
 import { InstituteTrainingsPage } from "../pages/institute/InstituteTrainingsPage";
+import { InstituteCreateTrainingPage } from "../pages/institute/InstituteCreateTrainingPage";
 import { InstituteEnrollmentsPage } from "../pages/institute/InstituteEnrollmentsPage";
 import { InstituteAssessmentsPage } from "../pages/institute/InstituteAssessmentsPage";
 import { PublicTrainingsPage } from "../pages/public/PublicTrainingsPage";
@@ -73,6 +77,18 @@ export function AppRoutes() {
             <RoleGate roles={["SYSTEM_ADMIN"]}>
               <RoleLayout>
                 <AdminUsersPage />
+              </RoleLayout>
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/create-training"
+        element={
+          <ProtectedRoute>
+            <RoleGate roles={["SYSTEM_ADMIN"]}>
+              <RoleLayout>
+                <AdminCreateTrainingPage />
               </RoleLayout>
             </RoleGate>
           </ProtectedRoute>
@@ -164,6 +180,30 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/representative/assessments"
+        element={
+          <ProtectedRoute>
+            <RoleGate roles={["REPRESENTATIVE", "SYSTEM_ADMIN"]}>
+              <RoleLayout>
+                <RepresentativeAssessmentsPage />
+              </RoleLayout>
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/representative/assessment-attempts/:attemptId"
+        element={
+          <ProtectedRoute>
+            <RoleGate roles={["REPRESENTATIVE", "SYSTEM_ADMIN"]}>
+              <RoleLayout>
+                <RepresentativeAssessmentAttemptPage />
+              </RoleLayout>
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/delegator/dashboard"
@@ -233,6 +273,18 @@ export function AppRoutes() {
             <RoleGate roles={["TRAINING_INSTITUTE", "SYSTEM_ADMIN"]}>
               <RoleLayout>
                 <InstituteTrainingsPage />
+              </RoleLayout>
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/institute/create-trainings"
+        element={
+          <ProtectedRoute>
+            <RoleGate roles={["TRAINING_INSTITUTE", "SYSTEM_ADMIN"]}>
+              <RoleLayout>
+                <InstituteCreateTrainingPage />
               </RoleLayout>
             </RoleGate>
           </ProtectedRoute>

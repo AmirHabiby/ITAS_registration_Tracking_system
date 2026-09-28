@@ -87,8 +87,16 @@ public class AssessmentService {
 
     @Transactional
     public AssessmentResult submit(AssessmentRequestDto request, Jwt jwt) {
-        Enrollment enrollment = enrollmentRepository.findById(request.enrollmentId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Enrollment not found"));
+        UUID representativeId = userAccountRepository.findByUsername(request.representativeUsername())
+            .flatMap(user -> representativeRepository.findByUserId(user.getId()))
+            .map(representative -> representative.getId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Representative not found"));
+        Enrollment enrollment = enrollmentRepository.findByRepresentativeIdAndStatusInOrderByAssessedAtDesc(
+                representativeId,
+                List.of(EnrollmentStatus.ENROLLED, EnrollmentStatus.ONGOING, EnrollmentStatus.RETAKE_REQUIRED))
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Active enrollment not found"));
         Training training = trainingRepository.findById(enrollment.getTrainingId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Training not found"));
 

@@ -41,11 +41,15 @@ public class TrainingMaterial extends AuditableEntity {
     @Column(name = "file_size_bytes")
     private Long fileSizeBytes;
 
+    @Column(name = "week_number", nullable = false)
+    private int weekNumber;
+
     protected TrainingMaterial() {
     }
 
     public TrainingMaterial(UUID trainingId, UUID uploadedByUserId, String title, String description,
-                            String materialType, String fileUrl, String cloudinaryPublicId, Long fileSizeBytes) {
+                            String materialType, String fileUrl, String cloudinaryPublicId, Long fileSizeBytes,
+                            int weekNumber) {
         this.trainingId = trainingId;
         this.uploadedByUserId = uploadedByUserId;
         this.title = title;
@@ -54,6 +58,7 @@ public class TrainingMaterial extends AuditableEntity {
         this.fileUrl = fileUrl;
         this.cloudinaryPublicId = cloudinaryPublicId;
         this.fileSizeBytes = fileSizeBytes;
+        this.weekNumber = weekNumber;
     }
 
     public UUID getId() { return id; }
@@ -65,6 +70,7 @@ public class TrainingMaterial extends AuditableEntity {
     public String getFileUrl() { return fileUrl; }
     public String getCloudinaryPublicId() { return cloudinaryPublicId; }
     public Long getFileSizeBytes() { return fileSizeBytes; }
+    public int getWeekNumber() { return weekNumber; }
     public void setId(UUID id) { this.id = id; }
     public void setTrainingId(UUID trainingId) { this.trainingId = trainingId; }
     public void setUploadedByUserId(UUID uploadedByUserId) { this.uploadedByUserId = uploadedByUserId; }
@@ -74,4 +80,5 @@ public class TrainingMaterial extends AuditableEntity {
     public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
     public void setCloudinaryPublicId(String cloudinaryPublicId) { this.cloudinaryPublicId = cloudinaryPublicId; }
     public void setFileSizeBytes(Long fileSizeBytes) { this.fileSizeBytes = fileSizeBytes; }
+    public void setWeekNumber(int weekNumber) { this.weekNumber = weekNumber; }
 }

@@ -8,9 +8,14 @@ public final class AssessmentMapper {
     }
 
     public static AssessmentResponseDto toDto(AssessmentResult assessmentResult) {
+        return toDto(assessmentResult, null);
+    }
+
+    public static AssessmentResponseDto toDto(AssessmentResult assessmentResult, String representativeName) {
         return new AssessmentResponseDto(
             assessmentResult.getId(),
             assessmentResult.getTrainingEnrollmentId(),
+            representativeName,
             assessmentResult.getSubmittedByUserId(),
             assessmentResult.getScore(),
             assessmentResult.isPassed(),

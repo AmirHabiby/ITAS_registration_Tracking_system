@@ -11,8 +11,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: "#0f766e",
-          colorInfo: "#0f766e",
+          colorPrimary: "#0e79bf",
+          colorInfo: "#0e79bf",
           borderRadius: 10,
           fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
         },

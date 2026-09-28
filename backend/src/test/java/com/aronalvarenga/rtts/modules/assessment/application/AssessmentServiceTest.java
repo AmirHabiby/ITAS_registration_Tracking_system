@@ -18,6 +18,8 @@ import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentStatus;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstitute;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstituteRepository;
 import com.aronalvarenga.rtts.modules.representatives.application.RepresentativeService;
+import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
+import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
 import com.aronalvarenga.rtts.modules.trainings.domain.Training;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ class AssessmentServiceTest {
         AssessmentResultRepository assessmentResultRepository = mock(AssessmentResultRepository.class);
         EnrollmentRepository enrollmentRepository = mock(EnrollmentRepository.class);
         TrainingRepository trainingRepository = mock(TrainingRepository.class);
+        RepresentativeRepository representativeRepository = mock(RepresentativeRepository.class);
         UserAccountRepository userAccountRepository = mock(UserAccountRepository.class);
         RepresentativeService representativeService = mock(RepresentativeService.class);
         TrainingInstituteRepository trainingInstituteRepository = mock(TrainingInstituteRepository.class);
@@ -57,12 +60,21 @@ class AssessmentServiceTest {
         enrollment.setId(enrollmentId);
         enrollment.setStatus(EnrollmentStatus.ONGOING);
 
+        Representative representative = new Representative("Test Representative", "representative@test.com");
+        representative.setId(representativeId);
+        UUID representativeUserId = UUID.randomUUID();
+        representative.setUserId(representativeUserId);
+
         UserAccount instituteUser = new UserAccount("institute", "hashed", UserRole.TRAINING_INSTITUTE, "Institute");
         instituteUser.setId(instituteUserId);
 
         Jwt jwt = mock(Jwt.class);
         when(jwt.getSubject()).thenReturn("institute");
-        when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.of(enrollment));
+        UserAccount representativeUser = new UserAccount("representative", "hashed", UserRole.REPRESENTATIVE, "Representative");
+        representativeUser.setId(representativeUserId);
+        when(userAccountRepository.findByUsername("representative")).thenReturn(Optional.of(representativeUser));
+        when(representativeRepository.findByUserId(any(UUID.class))).thenReturn(Optional.of(representative));
+        when(enrollmentRepository.findByRepresentativeIdAndStatusInOrderByAssessedAtDesc(any(UUID.class), any())).thenReturn(java.util.List.of(enrollment));
         when(trainingRepository.findById(trainingId)).thenReturn(Optional.of(training));
         when(userAccountRepository.findByUsername("institute")).thenReturn(Optional.of(instituteUser));
         when(trainingInstituteRepository.findByUserId(instituteUserId)).thenReturn(Optional.of(institute));
@@ -74,14 +86,14 @@ class AssessmentServiceTest {
             assessmentResultRepository,
             enrollmentRepository,
             trainingRepository,
-            null, // representativeRepository
+            representativeRepository,
             userAccountRepository,
             representativeService,
             trainingInstituteRepository
         );
 
         AssessmentRequestDto request = new AssessmentRequestDto(
-            enrollmentId,
+            "representative",
             new BigDecimal("85.00"),
             "Great performance",
             Instant.now()
@@ -98,6 +110,7 @@ class AssessmentServiceTest {
         AssessmentResultRepository assessmentResultRepository = mock(AssessmentResultRepository.class);
         EnrollmentRepository enrollmentRepository = mock(EnrollmentRepository.class);
         TrainingRepository trainingRepository = mock(TrainingRepository.class);
+        RepresentativeRepository representativeRepository = mock(RepresentativeRepository.class);
         UserAccountRepository userAccountRepository = mock(UserAccountRepository.class);
         RepresentativeService representativeService = mock(RepresentativeService.class);
         TrainingInstituteRepository trainingInstituteRepository = mock(TrainingInstituteRepository.class);
@@ -121,12 +134,21 @@ class AssessmentServiceTest {
         enrollment.setId(enrollmentId);
         enrollment.setStatus(EnrollmentStatus.ONGOING);
 
+        Representative representative = new Representative("Test Representative", "representative@test.com");
+        representative.setId(representativeId);
+        UUID representativeUserId = UUID.randomUUID();
+        representative.setUserId(representativeUserId);
+
         UserAccount instituteUser = new UserAccount("institute", "hashed", UserRole.TRAINING_INSTITUTE, "Institute");
         instituteUser.setId(instituteUserId);
 
         Jwt jwt = mock(Jwt.class);
         when(jwt.getSubject()).thenReturn("institute");
-        when(enrollmentRepository.findById(enrollmentId)).thenReturn(Optional.of(enrollment));
+        UserAccount representativeUser = new UserAccount("representative", "hashed", UserRole.REPRESENTATIVE, "Representative");
+        representativeUser.setId(representativeUserId);
+        when(userAccountRepository.findByUsername("representative")).thenReturn(Optional.of(representativeUser));
+        when(representativeRepository.findByUserId(any(UUID.class))).thenReturn(Optional.of(representative));
+        when(enrollmentRepository.findByRepresentativeIdAndStatusInOrderByAssessedAtDesc(any(UUID.class), any())).thenReturn(java.util.List.of(enrollment));
         when(trainingRepository.findById(trainingId)).thenReturn(Optional.of(training));
         when(userAccountRepository.findByUsername("institute")).thenReturn(Optional.of(instituteUser));
         when(trainingInstituteRepository.findByUserId(instituteUserId)).thenReturn(Optional.of(institute));
@@ -138,14 +160,14 @@ class AssessmentServiceTest {
             assessmentResultRepository,
             enrollmentRepository,
             trainingRepository,
-            null, // representativeRepository
+            representativeRepository,
             userAccountRepository,
             representativeService,
             trainingInstituteRepository
         );
 
         AssessmentRequestDto request = new AssessmentRequestDto(
-            enrollmentId,
+            "representative",
             new BigDecimal("65.00"), // Below passing score
             "Needs improvement",
             Instant.now()

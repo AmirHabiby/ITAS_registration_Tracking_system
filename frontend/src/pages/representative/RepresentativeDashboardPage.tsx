@@ -41,7 +41,7 @@ export function RepresentativeDashboardPage() {
   ] as const;
 
   return (
-    <Row gutter={16}>
+    <Row gutter={16} className="dashboard-cards-row">
       {statistics.map(([key, value]) => (
         <Col span={8} key={key}>
           <Card>

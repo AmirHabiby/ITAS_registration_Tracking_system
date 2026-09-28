@@ -5,6 +5,7 @@ import { portalService, type User } from "../../services/portalService";
 export function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function loadUsers() {
@@ -21,12 +22,15 @@ export function AdminUsersPage() {
   useEffect(() => { void loadUsers(); }, []);
 
   async function setEnabled(user: User, enabled: boolean) {
+    setUpdatingId(user.id);
     try {
       await portalService.setUserEnabled(user.id, enabled);
       message.success(`User ${enabled ? "activated" : "deactivated"}.`);
       await loadUsers();
     } catch {
       message.error("Unable to update user status.");
+    } finally {
+      setUpdatingId(null);
     }
   }
 
@@ -38,7 +42,7 @@ export function AdminUsersPage() {
         { title: "Display name", dataIndex: "displayName" },
         { title: "Role", render: (_, user) => <Tag>{user.role}</Tag> },
         { title: "Status", render: (_, user) => <Tag color={user.enabled ? "green" : "red"}>{user.enabled ? "Enabled" : "Disabled"}</Tag> },
-        { title: "Action", render: (_, user) => <Button onClick={() => void setEnabled(user, !user.enabled)}>{user.enabled ? "Deactivate" : "Activate"}</Button> },
+        { title: "Action", render: (_, user) => <Button loading={updatingId === user.id} disabled={updatingId !== null} onClick={() => void setEnabled(user, !user.enabled)}>{updatingId === user.id ? (user.enabled ? "Deactivating..." : "Activating...") : user.enabled ? "Deactivate account" : "Activate account"}</Button> },
       ]} />
     </Space>
   );

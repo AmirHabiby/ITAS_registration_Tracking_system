@@ -1,6 +1,8 @@
 package com.aronalvarenga.rtts.modules.delegator.web;
 
 import com.aronalvarenga.rtts.modules.delegator.application.DelegatorService;
+import com.aronalvarenga.rtts.modules.delegator.application.DelegatorAssessmentOutcomeService;
+import com.aronalvarenga.rtts.modules.delegator.web.DelegatorAssessmentOutcomeDto;
 import com.aronalvarenga.rtts.modules.firm.web.FirmDelegationResponseDto;
 import com.aronalvarenga.rtts.modules.firm.web.FirmResponseDto;
 import com.aronalvarenga.rtts.modules.requests.web.TrainingRequestMapper;
@@ -30,15 +32,23 @@ public class DelegatorController {
     private final DelegatorService delegatorService;
     private final RepresentativeRepository representativeRepository;
     private final TrainingRepository trainingRepository;
+    private final DelegatorAssessmentOutcomeService assessmentOutcomeService;
 
     public DelegatorController(
         DelegatorService delegatorService,
         RepresentativeRepository representativeRepository,
-        TrainingRepository trainingRepository
+        TrainingRepository trainingRepository,
+        DelegatorAssessmentOutcomeService assessmentOutcomeService
     ) {
         this.delegatorService = delegatorService;
         this.representativeRepository = representativeRepository;
         this.trainingRepository = trainingRepository;
+        this.assessmentOutcomeService = assessmentOutcomeService;
+    }
+
+    @GetMapping("/assessment-outcomes")
+    public List<DelegatorAssessmentOutcomeDto> releasedAssessmentOutcomes(@AuthenticationPrincipal Jwt jwt) {
+        return assessmentOutcomeService.listReleasedOutcomes(jwt.getSubject());
     }
 
     @GetMapping("/training-requests")
@@ -67,19 +77,21 @@ public class DelegatorController {
     }
 
     @GetMapping("/trained-representatives")
-    public List<RepresentativeResponseDto> trainedRepresentatives() {
-        return delegatorService.trainedRepresentatives().stream().map(RepresentativeMapper::toDto).toList();
+    public List<DelegatorTrainedOptionResponseDto> trainedRepresentatives() {
+        return delegatorService.trainedOptions();
     }
 
     @PatchMapping("/representatives/{id}/mark-as-agent")
     public DelegatedAgentResponseDto markAsAgent(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt, @RequestBody(required = false) DelegatorDecisionRequest request) {
         DelegatorDecisionRequest decision = request == null ? new DelegatorDecisionRequest(null) : request;
-        return DelegatedAgentMapper.toDto(delegatorService.markAsAgent(id, jwt, decision));
+        return DelegatedAgentMapper.toDto(delegatorService.markAsAgent(id, jwt, decision), representativeRepository);
     }
 
     @GetMapping("/agents")
-    public List<DelegatedAgentResponseDto> agents() {
-        return delegatorService.agents().stream().map(DelegatedAgentMapper::toDto).toList();
+    public List<DelegatedAgentResponseDto> agents(@AuthenticationPrincipal Jwt jwt) {
+        return delegatorService.agents(jwt).stream()
+            .map(agent -> DelegatedAgentMapper.toDto(agent, representativeRepository))
+            .toList();
     }
 
     @GetMapping("/firms")

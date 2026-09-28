@@ -18,7 +18,7 @@ export function RepresentativeRequestsPage() {
     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
       {error && <Alert message={error} type="error" showIcon />}
       <Table loading={loading} dataSource={requests} rowKey="id" columns={[
-        { title: "Training", dataIndex: "trainingId" },
+        { title: "Training", dataIndex: "trainingTitle", render: (value: string | undefined, request) => value ?? request.trainingId },
         { title: "Requested", dataIndex: "requestedAt", render: (value: string) => new Date(value).toLocaleString() },
         { title: "Status", render: (_, request) => <Tag>{request.status}</Tag> },
         { title: "Reviewer", dataIndex: "reviewerUsername" },

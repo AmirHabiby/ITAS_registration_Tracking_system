@@ -7,6 +7,7 @@ import java.util.UUID;
 public record AssessmentResponseDto(
     UUID id,
     UUID trainingEnrollmentId,
+    String representativeName,
     UUID submittedByUserId,
     BigDecimal score,
     boolean passed,

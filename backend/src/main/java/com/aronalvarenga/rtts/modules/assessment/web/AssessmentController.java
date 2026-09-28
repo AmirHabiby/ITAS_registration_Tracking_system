@@ -1,6 +1,8 @@
 package com.aronalvarenga.rtts.modules.assessment.web;
 
 import com.aronalvarenga.rtts.modules.assessment.application.AssessmentService;
+import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
+import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -21,10 +23,19 @@ public class AssessmentController {
 
     private final AssessmentService assessmentService;
     private final com.aronalvarenga.rtts.identity.domain.UserAccountRepository userAccountRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final RepresentativeRepository representativeRepository;
 
-    public AssessmentController(AssessmentService assessmentService, com.aronalvarenga.rtts.identity.domain.UserAccountRepository userAccountRepository) {
+    public AssessmentController(
+        AssessmentService assessmentService,
+        com.aronalvarenga.rtts.identity.domain.UserAccountRepository userAccountRepository,
+        EnrollmentRepository enrollmentRepository,
+        RepresentativeRepository representativeRepository
+    ) {
         this.assessmentService = assessmentService;
         this.userAccountRepository = userAccountRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.representativeRepository = representativeRepository;
     }
 
     @PostMapping
@@ -37,7 +48,7 @@ public class AssessmentController {
         UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
             .getId();
-        return assessmentService.listForInstitute(userId).stream().map(AssessmentMapper::toDto).toList();
+        return assessmentService.listForInstitute(userId).stream().map(this::toDto).toList();
     }
 
     @GetMapping("/{id}")
@@ -45,6 +56,14 @@ public class AssessmentController {
         UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
             .getId();
-        return AssessmentMapper.toDto(assessmentService.getForInstitute(userId, id));
+        return toDto(assessmentService.getForInstitute(userId, id));
+    }
+
+    private AssessmentResponseDto toDto(com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResult assessment) {
+        String representativeName = enrollmentRepository.findById(assessment.getTrainingEnrollmentId())
+            .flatMap(enrollment -> representativeRepository.findById(enrollment.getRepresentativeId()))
+            .map(representative -> representative.getFullName())
+            .orElse("Unknown representative");
+        return AssessmentMapper.toDto(assessment, representativeName);
     }
 }

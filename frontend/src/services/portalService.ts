@@ -15,6 +15,13 @@ export type Training = {
   active: boolean;
 };
 
+export type Institute = {
+  id: string;
+  name: string;
+  contactEmail: string;
+  active: boolean;
+};
+
 export type TrainingRequest = {
   id: string;
   representativeId: string;
@@ -54,6 +61,17 @@ export type Representative = {
   firmId?: string | null;
 };
 
+export type DelegatorTrainedOption = {
+  id: string;
+  name: string;
+  email: string;
+  type: 'REPRESENTATIVE' | 'FIRM';
+  status: string;
+  firmId: string | null;
+  trainedStaffCount: number;
+  delegated: boolean;
+};
+
 export type FirmStaff = Representative & { firmId: string };
 export type Firm = {
   id: string;
@@ -82,6 +100,7 @@ export type FirmDashboard = {
 export type Agent = {
   delegationId: string;
   representativeId: string;
+  representativeName?: string;
   delegatorId: string;
   status: string;
   delegatedAt: string;
@@ -92,7 +111,9 @@ export type Agent = {
 export type Enrollment = {
   id: string;
   representativeId: string;
+  representativeName?: string;
   trainingId: string;
+  trainingTitle?: string;
   assessmentScore: number | null;
   passed: boolean | null;
   assessmentNote: string | null;
@@ -103,6 +124,7 @@ export type Enrollment = {
 export type Assessment = {
   id: string;
   trainingEnrollmentId: string;
+  representativeName: string;
   submittedByUserId: string;
   score: number;
   passed: boolean;
@@ -114,6 +136,23 @@ export type PublicTrainingSummary = {
   totalTrainings: number;
   enrolledTrainings: number;
   remainingTrainings: number;
+};
+
+export type PublicEnrollment = {
+  id: string;
+  trainingId: string;
+  enrolledAt: string;
+};
+
+export type TrainingMaterial = {
+  id: string;
+  trainingId: string;
+  title: string;
+  description: string | null;
+  materialType: string;
+  fileUrl: string;
+  fileSizeBytes: number | null;
+  weekNumber: number;
 };
 
 const publicTraineeStorageKey = 'rtts.publicTraineeId';
@@ -142,7 +181,7 @@ export const portalService = {
     ),
   decideDelegatorRequest: (id: string, action: 'approve' | 'reject', note: string) =>
     apiClient.patch<TrainingRequest>(`/api/delegators/me/training-requests/${id}/${action}`, { note }),
-  listTrainedRepresentatives: () => apiClient.get<Representative[]>('/api/delegators/me/trained-representatives'),
+  listTrainedRepresentatives: () => apiClient.get<DelegatorTrainedOption[]>('/api/delegators/me/trained-representatives'),
   markRepresentativeAsAgent: (id: string, note: string) =>
     apiClient.patch<Agent>(`/api/delegators/me/representatives/${id}/mark-as-agent`, {
       note,
@@ -160,6 +199,27 @@ export const portalService = {
   createInstitute: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/training-institutes', body),
   createFirm: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/firms', body),
   listAdminFirms: () => apiClient.get<Firm[]>('/api/admin/firms'),
+  listInstitutes: () => apiClient.get<Institute[]>('/api/institutes'),
+  createAdminTraining: (body: {
+    instituteId: string;
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    capacity: number;
+    accessType: 'PUBLIC' | 'STAFF';
+    staffAccessPassword?: string;
+  }) => apiClient.post<Training>('/api/trainings', body),
+  uploadTrainingMaterial: (trainingId: string, weekNumber: number, file: File, title?: string) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('trainingId', trainingId);
+    formData.append('weekNumber', String(weekNumber));
+    if (title) formData.append('title', title);
+    return apiClient.post('/api/media/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 
   firmDashboard: () => apiClient.get<FirmDashboard>('/api/dashboard/me'),
   listFirmStaff: () => apiClient.get<FirmStaff[]>('/api/firm-admin/staff'),
@@ -180,7 +240,7 @@ export const portalService = {
     staffAccessPassword?: string;
   }) => apiClient.post<Training>('/api/institutes/me/trainings', body),
   listAssessments: () => apiClient.get<Assessment[]>('/api/assessments'),
-  submitAssessment: (body: { enrollmentId: string; score: number; remarks: string; assessmentDate: string }) =>
+  submitAssessment: (body: { representativeUsername: string; score: number; remarks: string; assessmentDate: string }) =>
     apiClient.post<Assessment>('/api/assessments', body),
 
   listPublicTrainings: () => apiClient.get<Training[]>('/api/public/trainings'),
@@ -190,6 +250,14 @@ export const portalService = {
     }),
   enrollPublicTrainee: (trainingId: string) =>
     apiClient.post(`/api/public/trainings/${trainingId}/enroll`, null, {
+      headers: { 'X-Public-Trainee-Id': getPublicTraineeId() },
+    }),
+  listPublicEnrollments: () =>
+    apiClient.get<PublicEnrollment[]>('/api/public/trainings/enrolled', {
+      headers: { 'X-Public-Trainee-Id': getPublicTraineeId() },
+    }),
+  listPublicTrainingMaterials: (trainingId: string) =>
+    apiClient.get<TrainingMaterial[]>(`/api/public/trainings/${trainingId}/materials`, {
       headers: { 'X-Public-Trainee-Id': getPublicTraineeId() },
     }),
   listStaffTrainings: () => apiClient.get<Training[]>('/api/staff/trainings'),

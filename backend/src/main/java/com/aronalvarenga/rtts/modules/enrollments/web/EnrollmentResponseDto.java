@@ -8,7 +8,9 @@ import java.util.UUID;
 public record EnrollmentResponseDto(
     UUID id,
     UUID representativeId,
+    String representativeName,
     UUID trainingId,
+    String trainingTitle,
     BigDecimal assessmentScore,
     Boolean passed,
     String assessmentNote,

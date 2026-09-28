@@ -52,7 +52,7 @@ export function StaffTrainingsPage() {
           </div>
           <Statistic title="Total staff trainings" value={staffTrainingCount} />
           <Statistic title="Selected training" value={training ? 1 : 0} />
-          {training ? <Button onClick={signOut} block>Sign out</Button> : <Button type="primary" href="/login" block>Sign in</Button>}
+          {training ? <Button onClick={signOut} block>Exit training</Button> : <Button type="primary" href="/login" block>Staff sign in</Button>}
         </Space>
       </Sider>
       <Layout>
@@ -77,7 +77,7 @@ export function StaffTrainingsPage() {
                   <Input.Password />
                 </Form.Item>
                 <Button type="primary" htmlType="submit" loading={loading} block>
-                  Access training
+                  {loading ? "Checking access..." : "Access training"}
                 </Button>
               </Form>
             </Card>
@@ -93,7 +93,7 @@ export function StaffTrainingsPage() {
                   <Typography.Text><strong>Start date:</strong> {training.startDate}</Typography.Text>
                   <Typography.Text><strong>End date:</strong> {training.endDate}</Typography.Text>
                   <Button type="primary" onClick={() => setShowMaterials(true)}>
-                    Enroll now
+                    {showMaterials ? "Materials opened" : "View training materials"}
                   </Button>
                 </Space>
               </Card>

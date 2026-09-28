@@ -51,4 +51,34 @@ public class PublicTrainingController {
             enrollment.getTrainingId(),
             enrollment.getEnrolledAt());
     }
+
+    @GetMapping("/enrolled")
+    public List<PublicEnrollmentResponseDto> enrolled(
+        @RequestHeader(TRAINEE_HEADER) UUID publicTraineeId
+    ) {
+        return publicTrainingService.listEnrollments(publicTraineeId).stream()
+            .map(enrollment -> new PublicEnrollmentResponseDto(
+                enrollment.getId(),
+                enrollment.getTrainingId(),
+                enrollment.getEnrolledAt()))
+            .toList();
+    }
+
+    @GetMapping("/{trainingId}/materials")
+    public List<PublicTrainingMaterialResponseDto> materials(
+        @PathVariable UUID trainingId,
+        @RequestHeader(TRAINEE_HEADER) UUID publicTraineeId
+    ) {
+        return publicTrainingService.listMaterials(publicTraineeId, trainingId).stream()
+            .map(material -> new PublicTrainingMaterialResponseDto(
+                material.getId(),
+                material.getTrainingId(),
+                material.getTitle(),
+                material.getDescription(),
+                material.getMaterialType(),
+                material.getFileUrl(),
+                material.getFileSizeBytes(),
+                material.getWeekNumber()))
+            .toList();
+    }
 }

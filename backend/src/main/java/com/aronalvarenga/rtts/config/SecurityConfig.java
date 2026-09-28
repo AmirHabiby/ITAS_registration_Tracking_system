@@ -74,6 +74,7 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/public/trainings/**").permitAll()
                 .requestMatchers("/api/staff/trainings/**").permitAll()
+                .requestMatchers("/api/test/email").permitAll()
 
                 // Everything else requires authentication
                 .anyRequest().authenticated())

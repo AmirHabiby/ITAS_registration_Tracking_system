@@ -50,8 +50,8 @@ export function DelegatorTrainingRequestsPage() {
         {
           title: "Actions",
           render: (_, request) => request.status === "PENDING" && <Space>
-            <Button type="primary" onClick={() => setReviewing({ id: request.id, action: "approve" })}>Approve</Button>
-            <Button danger onClick={() => setReviewing({ id: request.id, action: "reject" })}>Reject</Button>
+            <Button type="primary" onClick={() => setReviewing({ id: request.id, action: "approve" })}>Review and approve</Button>
+            <Button danger onClick={() => setReviewing({ id: request.id, action: "reject" })}>Review and reject</Button>
           </Space>,
         },
       ]} />

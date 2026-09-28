@@ -1,6 +1,7 @@
-import { Card, Col, Row, Statistic } from "antd";
+import { Card, Col, Row, Space, Statistic } from "antd";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/apiClient";
+import { DelegatorAssessmentOutcomes } from "./DelegatorAssessmentOutcomes";
 
 type Dashboard = {
   pendingTrainingRequests: number;
@@ -30,14 +31,17 @@ export function DelegatorDashboardPage() {
     } satisfies Dashboard);
 
   return (
-    <Row gutter={16}>
-      {Object.entries(dashboard).map(([key, value]) => (
-        <Col span={8} key={key}>
-          <Card>
-            <Statistic title={key} value={value} />
-          </Card>
-        </Col>
-      ))}
-    </Row>
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
+      <Row gutter={16} className="dashboard-cards-row">
+        {Object.entries(dashboard).map(([key, value]) => (
+          <Col xs={24} sm={12} lg={8} key={key}>
+            <Card>
+              <Statistic title={key} value={value} />
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      <DelegatorAssessmentOutcomes />
+    </Space>
   );
 }

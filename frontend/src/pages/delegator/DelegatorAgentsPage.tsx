@@ -1,6 +1,7 @@
 import { Alert, Space, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { portalService, type Agent } from "../../services/portalService";
+import { DelegatorAssessmentOutcomes } from "./DelegatorAssessmentOutcomes";
 
 export function DelegatorAgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -15,14 +16,15 @@ export function DelegatorAgentsPage() {
   }, []);
 
   return (
-    <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+    <Space direction="vertical" size="large" style={{ width: "100%" }}>
       {error && <Alert message={error} type="error" showIcon />}
       <Table loading={loading} dataSource={agents} rowKey="delegationId" columns={[
-        { title: "Representative", dataIndex: "representativeId" },
+        { title: "Representative", dataIndex: "representativeName", render: (value: string | undefined, agent) => value ?? agent.representativeId },
         { title: "Delegated At", dataIndex: "delegatedAt", render: (value: string) => new Date(value).toLocaleString() },
         { title: "Status", render: (_, agent) => <Tag color="green">{agent.status}</Tag> },
         { title: "Reason", dataIndex: "reason" },
       ]} />
+      <DelegatorAssessmentOutcomes />
     </Space>
   );
 }

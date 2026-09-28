@@ -8,6 +8,8 @@ import com.aronalvarenga.rtts.modules.trainings.application.TrainingService;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingMapper;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingRequestDto;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingResponseDto;
+import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
+import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +33,15 @@ public class TrainingInstituteController {
     private final TrainingService trainingService;
     private final EnrollmentService enrollmentService;
     private final UserAccountRepository userAccountRepository;
+    private final RepresentativeRepository representativeRepository;
+    private final TrainingRepository trainingRepository;
 
-    public TrainingInstituteController(TrainingService trainingService, EnrollmentService enrollmentService, UserAccountRepository userAccountRepository) {
+    public TrainingInstituteController(TrainingService trainingService, EnrollmentService enrollmentService, UserAccountRepository userAccountRepository, RepresentativeRepository representativeRepository, TrainingRepository trainingRepository) {
         this.trainingService = trainingService;
         this.enrollmentService = enrollmentService;
         this.userAccountRepository = userAccountRepository;
+        this.representativeRepository = representativeRepository;
+        this.trainingRepository = trainingRepository;
     }
 
     @PostMapping("/trainings")
@@ -71,7 +77,9 @@ public class TrainingInstituteController {
         UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
             .getId();
-        return enrollmentService.listForInstitute(userId).stream().map(EnrollmentMapper::toDto).toList();
+        return enrollmentService.listForInstitute(userId).stream()
+            .map(enrollment -> EnrollmentMapper.toDto(enrollment, representativeRepository, trainingRepository))
+            .toList();
     }
 
 }

@@ -7,6 +7,8 @@ import com.aronalvarenga.rtts.modules.trainings.domain.Training;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingAccessType;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingStatus;
+import com.aronalvarenga.rtts.modules.trainings.domain.TrainingMaterial;
+import com.aronalvarenga.rtts.modules.trainings.domain.TrainingMaterialRepository;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -20,15 +22,18 @@ public class PublicTrainingService {
     private final TrainingService trainingService;
     private final TrainingRepository trainingRepository;
     private final PublicTrainingEnrollmentRepository enrollmentRepository;
+    private final TrainingMaterialRepository trainingMaterialRepository;
 
     public PublicTrainingService(
         TrainingService trainingService,
         TrainingRepository trainingRepository,
-        PublicTrainingEnrollmentRepository enrollmentRepository
+        PublicTrainingEnrollmentRepository enrollmentRepository,
+        TrainingMaterialRepository trainingMaterialRepository
     ) {
         this.trainingService = trainingService;
         this.trainingRepository = trainingRepository;
         this.enrollmentRepository = enrollmentRepository;
+        this.trainingMaterialRepository = trainingMaterialRepository;
     }
 
     @Transactional(readOnly = true)
@@ -39,6 +44,19 @@ public class PublicTrainingService {
     @Transactional(readOnly = true)
     public long countEnrolled(UUID publicTraineeId) {
         return enrollmentRepository.countByPublicTraineeId(publicTraineeId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicTrainingEnrollment> listEnrollments(UUID publicTraineeId) {
+        return enrollmentRepository.findByPublicTraineeId(publicTraineeId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrainingMaterial> listMaterials(UUID publicTraineeId, UUID trainingId) {
+        if (!enrollmentRepository.existsByPublicTraineeIdAndTrainingId(publicTraineeId, trainingId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You must be enrolled in this training");
+        }
+        return trainingMaterialRepository.findByTrainingIdOrderByWeekNumberAscCreatedAtAsc(trainingId);
     }
 
     @Transactional

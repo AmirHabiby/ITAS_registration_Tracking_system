@@ -38,7 +38,7 @@ export function AdminDashboardPage() {
     } satisfies Dashboard);
 
   return (
-    <Row gutter={16}>
+    <Row gutter={16} className="dashboard-cards-row">
       {Object.entries(dashboard).map(([key, value]) => (
         <Col span={8} key={key}>
           <Card>

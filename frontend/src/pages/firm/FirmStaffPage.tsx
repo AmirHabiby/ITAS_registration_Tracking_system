@@ -7,6 +7,7 @@ export function FirmStaffPage() {
   const [delegated, setDelegated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   async function load() {
     try {
@@ -36,8 +37,10 @@ export function FirmStaffPage() {
   }
 
   async function assign(id: string) {
+    setAssigningId(id);
     try { await portalService.assignFirmAgent(id, "Assigned by Firm Admin"); message.success("Staff member assigned as agent."); await load(); }
     catch { message.error("Unable to assign staff member."); }
+    finally { setAssigningId(null); }
   }
   return (
     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
@@ -49,13 +52,13 @@ export function FirmStaffPage() {
           <Form.Item name="fullName" label="Full name" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}><Input /></Form.Item>
           <Form.Item name="enabled" label="Enabled" valuePropName="checked"><Switch /></Form.Item>
-          <Button type="primary" htmlType="submit" loading={creating}>Create staff member</Button>
+          <Button type="primary" htmlType="submit" loading={creating}>{creating ? "Creating staff member..." : "Create staff member"}</Button>
         </Form>
       </Card>
       <Card title="Firm staff">
         <Table loading={loading} rowKey="id" dataSource={staff} columns={[
           { title: "Name", dataIndex: "fullName" }, { title: "Email", dataIndex: "email" }, { title: "Training status", dataIndex: "status", render: (status: string) => <Tag>{status}</Tag> },
-          { title: "Actions", render: (_: unknown, record: FirmStaff) => <Space><Button disabled={!delegated || record.status !== "TRAINED"} onClick={() => void assign(record.id)}>Assign as agent</Button></Space> },
+          { title: "Actions", render: (_: unknown, record: FirmStaff) => <Space><Button loading={assigningId === record.id} disabled={!delegated || record.status !== "TRAINED" || assigningId !== null} onClick={() => void assign(record.id)}>{assigningId === record.id ? "Assigning..." : record.status !== "TRAINED" ? "Training required" : !delegated ? "Delegation required" : "Assign as agent"}</Button></Space> },
         ]} />
       </Card>
     </Space>

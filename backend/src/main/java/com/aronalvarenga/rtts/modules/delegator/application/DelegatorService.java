@@ -13,7 +13,10 @@ import com.aronalvarenga.rtts.modules.agentdelegation.domain.FirmRepository;
 import com.aronalvarenga.rtts.modules.common.exception.BadRequestException;
 import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.delegator.web.DelegatorDecisionRequest;
+import com.aronalvarenga.rtts.modules.delegator.web.DelegatorTrainedOptionResponseDto;
 import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
+import com.aronalvarenga.rtts.modules.firm.domain.FirmAdminProfile;
+import com.aronalvarenga.rtts.modules.firm.domain.FirmAdminProfileRepository;
 import com.aronalvarenga.rtts.modules.representatives.application.RepresentativeService;
 import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
 import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
@@ -23,8 +26,12 @@ import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestEntity;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestRepository;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestStatus;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.time.Instant;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import com.aronalvarenga.rtts.notifications.EmailService;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +50,8 @@ public class DelegatorService {
     private final FirmRepository firmRepository;
     private final FirmDelegationRepository firmDelegationRepository;
     private final FirmAgentAssignmentRepository firmAgentAssignmentRepository;
+    private final FirmAdminProfileRepository firmAdminProfileRepository;
+    private final EmailService emailService;
 
     @Autowired
     public DelegatorService(
@@ -55,7 +64,9 @@ public class DelegatorService {
         DelegatorProfileRepository delegatorProfileRepository,
         FirmRepository firmRepository,
         FirmDelegationRepository firmDelegationRepository,
-        FirmAgentAssignmentRepository firmAgentAssignmentRepository
+        FirmAgentAssignmentRepository firmAgentAssignmentRepository,
+        FirmAdminProfileRepository firmAdminProfileRepository,
+        EmailService emailService
     ) {
         this.trainingRequestRepository = trainingRequestRepository;
         this.trainingRequestService = trainingRequestService;
@@ -67,6 +78,8 @@ public class DelegatorService {
         this.firmRepository = firmRepository;
         this.firmDelegationRepository = firmDelegationRepository;
         this.firmAgentAssignmentRepository = firmAgentAssignmentRepository;
+        this.firmAdminProfileRepository = firmAdminProfileRepository;
+        this.emailService = emailService;
     }
 
     public DelegatorService(
@@ -79,7 +92,7 @@ public class DelegatorService {
         DelegatorProfileRepository delegatorProfileRepository
     ) {
         this(trainingRequestRepository, trainingRequestService, representativeRepository, representativeService,
-            agentDelegationRepository, userAccountRepository, delegatorProfileRepository, null, null, null);
+            agentDelegationRepository, userAccountRepository, delegatorProfileRepository, null, null, null, null, null);
     }
 
     @Transactional(readOnly = true)
@@ -107,6 +120,39 @@ public class DelegatorService {
         return representativeRepository.findByStatusOrderByFullNameAsc(RepresentativeStatus.TRAINED);
     }
 
+    @Transactional(readOnly = true)
+    public List<DelegatorTrainedOptionResponseDto> trainedOptions() {
+        List<Representative> trained = trainedRepresentatives();
+        Map<UUID, Firm> firmsById = firmRepository.findAllById(
+                trained.stream()
+                    .map(Representative::getFirmId)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(Collectors.toSet()))
+            .stream()
+            .collect(Collectors.toMap(Firm::getId, Function.identity()));
+
+        List<DelegatorTrainedOptionResponseDto> options = trained.stream()
+            .filter(representative -> representative.getFirmId() == null)
+            .map(representative -> new DelegatorTrainedOptionResponseDto(
+                representative.getId(), representative.getFullName(), representative.getEmail(),
+                "REPRESENTATIVE", representative.getStatus().name(), null, 0, false))
+            .collect(Collectors.toList());
+
+        trained.stream()
+            .map(Representative::getFirmId)
+            .filter(java.util.Objects::nonNull)
+            .distinct()
+            .map(firmsById::get)
+            .filter(firm -> firm != null && firm.isActive())
+            .sorted(java.util.Comparator.comparing(Firm::getName))
+            .forEach(firm -> options.add(new DelegatorTrainedOptionResponseDto(
+                firm.getId(), firm.getName(), firm.getEmail(), "FIRM", "TRAINED",
+                firm.getId(), trained.stream().filter(representative -> firm.getId().equals(representative.getFirmId())).count(),
+                firmDelegationRepository.findFirstByFirmIdAndRevokedAtIsNullOrderByDelegatedAtDesc(firm.getId()).isPresent())));
+
+        return options;
+    }
+
     @Transactional
     public AgentDelegation markAsAgent(UUID representativeId, Jwt jwt, DelegatorDecisionRequest request) {
         Representative representative = representativeRepository.findById(representativeId)
@@ -130,8 +176,14 @@ public class DelegatorService {
     }
 
     @Transactional(readOnly = true)
-    public List<AgentDelegation> agents() {
-        return agentDelegationRepository.findAllByOrderByDelegatedAtDesc();
+    public List<AgentDelegation> agents(Jwt jwt) {
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
+            .orElseThrow(() -> new BadRequestException("Delegator not found"))
+            .getId();
+        UUID delegatorId = delegatorProfileRepository.findByUserId(userId)
+            .orElseThrow(() -> new BadRequestException("Delegator profile not found"))
+            .getId();
+        return agentDelegationRepository.findByDelegatorProfileIdOrderByDelegatedAtDesc(delegatorId);
     }
 
     @Transactional(readOnly = true)
@@ -141,7 +193,7 @@ public class DelegatorService {
 
     @Transactional
     public FirmDelegation delegateFirm(UUID firmId, Jwt jwt, DelegatorDecisionRequest request) {
-        firmRepository.findById(firmId).filter(Firm::isActive)
+        Firm firm = firmRepository.findById(firmId).filter(Firm::isActive)
             .orElseThrow(() -> new BadRequestException("Active firm not found"));
         UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new BadRequestException("Delegator not found")).getId();
@@ -150,7 +202,20 @@ public class DelegatorService {
         if (firmDelegationRepository.findFirstByFirmIdAndRevokedAtIsNullOrderByDelegatedAtDesc(firmId).isPresent()) {
             throw new BadRequestException("Firm already has an active delegation");
         }
-        return firmDelegationRepository.save(new FirmDelegation(firmId, delegatorId, request == null ? null : request.note()));
+        String taskDescription = request == null || request.note() == null || request.note().isBlank()
+            ? "agent responsibilities"
+            : request.note();
+        FirmDelegation delegation = firmDelegationRepository.save(new FirmDelegation(firmId, delegatorId, taskDescription));
+        FirmAdminProfile firmAdmin = firmAdminProfileRepository.findByFirmId(firm.getId())
+            .orElseThrow(() -> new BadRequestException("Firm admin profile not found"));
+        emailService.sendEmail(
+            firmAdmin.getEmail(),
+            "Firm delegation assigned",
+            "Hello " + firmAdmin.getFullName() + "\n"
+                + "Your firm has been delegated to the task " + taskDescription + ". "
+                + "You're kindly required to assign one of your trained staff."
+        );
+        return delegation;
     }
 
     @Transactional

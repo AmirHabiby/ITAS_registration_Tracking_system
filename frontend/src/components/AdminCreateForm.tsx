@@ -35,7 +35,7 @@ export function AdminCreateForm({ kind, onSubmit }: AdminCreateFormProps) {
         <Form.Item name="email" label="Email" rules={[{ required: true, type: "email" }]}><Input /></Form.Item>
       </>}
       <Form.Item name="enabled" label="Enabled" valuePropName="checked"><Switch /></Form.Item>
-      <Button type="primary" htmlType="submit" loading={loading}>Create</Button>
+      <Button type="primary" htmlType="submit" loading={loading}>{loading ? "Creating account..." : `Create ${isInstitute ? "training institute" : kind}`}</Button>
     </Form>
   );
 }
