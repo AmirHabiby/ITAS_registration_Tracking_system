@@ -155,6 +155,17 @@ export type TrainingMaterial = {
   weekNumber: number;
 };
 
+export type RepresentativeTrainingProgress = {
+  completedMaterialIds: string[];
+  completedCount: number;
+  totalCount: number;
+  percentage: number;
+};
+
+export type SystemAnnouncement = {
+  text: string;
+};
+
 const publicTraineeStorageKey = 'rtts.publicTraineeId';
 
 function getPublicTraineeId() {
@@ -166,7 +177,23 @@ function getPublicTraineeId() {
 }
 
 export const portalService = {
+  getSystemAnnouncement: () =>
+    apiClient.get<SystemAnnouncement>('/api/dashboard/announcement'),
+  updateSystemAnnouncement: (text: string) =>
+    apiClient.put<SystemAnnouncement>('/api/dashboard/announcement', { text }),
+  getTraining: (trainingId: string) =>
+    apiClient.get<Training>(`/api/trainings/${trainingId}`),
   listAvailableTrainings: () => apiClient.get<Training[]>('/api/representatives/me/trainings'),
+  listRepresentativeTrainingMaterials: (trainingId: string) =>
+    apiClient.get<TrainingMaterial[]>(`/api/representatives/me/trainings/${trainingId}/materials`),
+  getRepresentativeTrainingProgress: (trainingId: string) =>
+    apiClient.get<RepresentativeTrainingProgress>(
+      `/api/representatives/me/trainings/${trainingId}/materials/progress`,
+    ),
+  completeRepresentativeTrainingMaterial: (trainingId: string, materialId: string) =>
+    apiClient.post<RepresentativeTrainingProgress>(
+      `/api/representatives/me/trainings/${trainingId}/materials/${materialId}/complete`,
+    ),
   requestTraining: (trainingId: string, representativeId: string) =>
     apiClient.post<TrainingRequest>('/api/representatives/me/training-requests', {
       trainingId,
@@ -230,6 +257,8 @@ export const portalService = {
 
   listInstituteEnrollments: () => apiClient.get<Enrollment[]>('/api/institutes/me/enrollments'),
   listInstituteTrainings: () => apiClient.get<Training[]>('/api/institutes/me/trainings'),
+  deleteInstituteTraining: (trainingId: string) =>
+    apiClient.delete<void>(`/api/institutes/me/trainings/${trainingId}`),
   createInstituteTraining: (body: {
     title: string;
     description: string;

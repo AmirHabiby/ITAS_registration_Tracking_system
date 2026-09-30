@@ -15,6 +15,7 @@ import { FirmDashboardPage } from "../pages/firm/FirmDashboardPage";
 import { FirmStaffPage } from "../pages/firm/FirmStaffPage";
 import { RepresentativeDashboardPage } from "../pages/representative/RepresentativeDashboardPage";
 import { RepresentativeTrainingsPage } from "../pages/representative/RepresentativeTrainingsPage";
+import { RepresentativeTrainingMaterialsPage } from "../pages/representative/RepresentativeTrainingMaterialsPage";
 import { RepresentativeRequestsPage } from "../pages/representative/RepresentativeRequestsPage";
 import { RepresentativeResultsPage } from "../pages/representative/RepresentativeResultsPage";
 import { RepresentativeAssessmentsPage } from "../pages/representative/RepresentativeAssessmentsPage";
@@ -151,6 +152,18 @@ export function AppRoutes() {
             <RoleGate roles={["REPRESENTATIVE", "SYSTEM_ADMIN"]}>
               <RoleLayout>
                 <RepresentativeTrainingsPage />
+              </RoleLayout>
+            </RoleGate>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/representative/trainings/:trainingId/materials"
+        element={
+          <ProtectedRoute>
+            <RoleGate roles={["REPRESENTATIVE", "SYSTEM_ADMIN"]}>
+              <RoleLayout>
+                <RepresentativeTrainingMaterialsPage />
               </RoleLayout>
             </RoleGate>
           </ProtectedRoute>

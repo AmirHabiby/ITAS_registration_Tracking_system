@@ -1,6 +1,7 @@
 import { Card, Col, Row, Statistic } from "antd";
 import { useEffect, useState } from "react";
 import { portalService, type FirmDashboard } from "../../services/portalService";
+import { RoleDashboardSidebar } from "../../components/RoleDashboardSidebar";
 
 export function FirmDashboardPage() {
   const [data, setData] = useState<FirmDashboard | null>(null);
@@ -25,14 +26,15 @@ export function FirmDashboardPage() {
 
   return (
     <>
-      <Row gutter={16} className="dashboard-cards-row">
+      <Row gutter={16} className="dashboard-cards-row role-dashboard-cards">
         {statistics.map(([title, value]) => (
-          <Col span={8} key={title}>
+          <Col span={8} key={title} className="role-dashboard-metric-column">
             <Card>
               <Statistic title={title} value={value} />
             </Card>
           </Col>
         ))}
+        <RoleDashboardSidebar />
       </Row>
       <div
         className={`firm-delegation-status ${dashboard.delegated ? "is-active" : "is-inactive"}`}

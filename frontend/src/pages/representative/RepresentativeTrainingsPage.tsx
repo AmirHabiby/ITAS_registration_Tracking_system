@@ -1,9 +1,11 @@
 import { Alert, Button, Space, Table, Tag, message } from "antd";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { portalService, type Training } from "../../services/portalService";
 
 export function RepresentativeTrainingsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [requestStatuses, setRequestStatuses] = useState<Record<string, string>>({});
@@ -46,7 +48,14 @@ export function RepresentativeTrainingsPage() {
   return (
     <Space direction="vertical" size="middle" style={{ width: "100%" }}>
       {error && <Alert message={error} type="error" showIcon />}
-      <Table loading={loading} dataSource={trainings} rowKey="id" columns={[
+      <Table loading={loading} dataSource={trainings} rowKey="id" onRow={(training) => ({
+        onClick: () => {
+          if (requestStatuses[training.id] === "APPROVED") {
+            navigate(`/representative/trainings/${training.id}/materials`);
+          }
+        },
+        style: { cursor: requestStatuses[training.id] === "APPROVED" ? "pointer" : "default" },
+      })} columns={[
         { title: "Title", dataIndex: "title" },
         { title: "Description", dataIndex: "description" },
         { title: "Dates", render: (_, training) => `${training.startDate} - ${training.endDate}` },
@@ -61,10 +70,17 @@ export function RepresentativeTrainingsPage() {
           return <Button
             type="primary"
             loading={requestingId === training.id}
-            onClick={() => void requestTraining(training.id)}
-            disabled={!training.active || pending || approved || requestingId !== null}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (approved) {
+                navigate(`/representative/trainings/${training.id}/materials`);
+              } else {
+                void requestTraining(training.id);
+              }
+            }}
+            disabled={approved ? false : !training.active || pending || requestingId !== null}
           >
-            {requestingId === training.id ? "Requesting..." : approved ? "Approved" : pending ? "Requested" : rejected ? "Request again" : !training.active ? "Unavailable" : "Request training"}
+            {requestingId === training.id ? "Requesting..." : approved ? "View materials" : pending ? "Requested" : rejected ? "Request again" : !training.active ? "Unavailable" : "Request training"}
           </Button>;
         } },
       ]} />

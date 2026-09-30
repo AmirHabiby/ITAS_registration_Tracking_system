@@ -4,6 +4,7 @@ import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.enrollments.application.EnrollmentService;
 import com.aronalvarenga.rtts.modules.enrollments.web.EnrollmentMapper;
 import com.aronalvarenga.rtts.modules.enrollments.web.EnrollmentResponseDto;
+import com.aronalvarenga.rtts.modules.traininginstitute.application.InstituteTrainingDeletionService;
 import com.aronalvarenga.rtts.modules.trainings.application.TrainingService;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingMapper;
 import com.aronalvarenga.rtts.modules.trainings.web.TrainingRequestDto;
@@ -35,13 +36,15 @@ public class TrainingInstituteController {
     private final UserAccountRepository userAccountRepository;
     private final RepresentativeRepository representativeRepository;
     private final TrainingRepository trainingRepository;
+    private final InstituteTrainingDeletionService instituteTrainingDeletionService;
 
-    public TrainingInstituteController(TrainingService trainingService, EnrollmentService enrollmentService, UserAccountRepository userAccountRepository, RepresentativeRepository representativeRepository, TrainingRepository trainingRepository) {
+    public TrainingInstituteController(TrainingService trainingService, EnrollmentService enrollmentService, UserAccountRepository userAccountRepository, RepresentativeRepository representativeRepository, TrainingRepository trainingRepository, InstituteTrainingDeletionService instituteTrainingDeletionService) {
         this.trainingService = trainingService;
         this.enrollmentService = enrollmentService;
         this.userAccountRepository = userAccountRepository;
         this.representativeRepository = representativeRepository;
         this.trainingRepository = trainingRepository;
+        this.instituteTrainingDeletionService = instituteTrainingDeletionService;
     }
 
     @PostMapping("/trainings")
@@ -70,6 +73,11 @@ public class TrainingInstituteController {
 
     @DeleteMapping("/trainings/{id}")
     public void deleteTraining(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = userAccountRepository.findByUsername(jwt.getSubject())
+            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"))
+            .getId();
+        instituteTrainingDeletionService.deleteForInstitute(userId, id);
     }
 
     @GetMapping("/enrollments")

@@ -2,11 +2,15 @@ package com.aronalvarenga.rtts.modules.dashboard.web;
 
 import com.aronalvarenga.rtts.identity.domain.UserAccountRepository;
 import com.aronalvarenga.rtts.modules.dashboard.application.DashboardService;
+import com.aronalvarenga.rtts.modules.dashboard.application.SystemAnnouncementService;
 import java.util.UUID;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,11 +21,31 @@ import org.springframework.web.server.ResponseStatusException;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+    private final SystemAnnouncementService announcementService;
     private final UserAccountRepository userAccountRepository;
 
-    public DashboardController(DashboardService dashboardService, UserAccountRepository userAccountRepository) {
+    public DashboardController(
+        DashboardService dashboardService,
+        SystemAnnouncementService announcementService,
+        UserAccountRepository userAccountRepository
+    ) {
         this.dashboardService = dashboardService;
+        this.announcementService = announcementService;
         this.userAccountRepository = userAccountRepository;
+    }
+
+    @GetMapping("/announcement")
+    @PreAuthorize("isAuthenticated()")
+    public SystemAnnouncementDto announcement() {
+        return new SystemAnnouncementDto(announcementService.getAnnouncement());
+    }
+
+    @PutMapping("/announcement")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public SystemAnnouncementDto updateAnnouncement(
+        @Valid @RequestBody UpdateSystemAnnouncementRequest request
+    ) {
+        return new SystemAnnouncementDto(announcementService.updateAnnouncement(request.text()));
     }
 
     @GetMapping("/admin")

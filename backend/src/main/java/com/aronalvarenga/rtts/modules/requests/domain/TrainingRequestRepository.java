@@ -6,6 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TrainingRequestRepository extends JpaRepository<TrainingRequestEntity, UUID> {
     List<TrainingRequestEntity> findByRepresentativeIdOrderByRequestedAtDesc(UUID representativeId);
+    boolean existsByRepresentativeIdAndTrainingIdAndStatus(
+        UUID representativeId,
+        UUID trainingId,
+        TrainingRequestStatus status
+    );
     List<TrainingRequestEntity> findByApprovedByDelegatorIdOrRejectedByDelegatorIdOrderByRequestedAtDesc(UUID approvedByDelegatorId, UUID rejectedByDelegatorId);
     List<TrainingRequestEntity> findByStatusOrderByRequestedAtDesc(TrainingRequestStatus status);
     long countByRepresentativeIdAndStatus(UUID representativeId, TrainingRequestStatus status);

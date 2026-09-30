@@ -17,7 +17,7 @@ public class CloudinaryService {
         this.cloudinary = cloudinary;
     }
 
-    public Map upload(
+    public Map<?, ?> upload(
             MultipartFile file,
             String folder
     ) throws IOException {
@@ -36,7 +36,7 @@ public class CloudinaryService {
             resourceType = "raw";
         }
 
-        return cloudinary.uploader().upload(
+        Object result = cloudinary.uploader().upload(
             file.getBytes(),
             ObjectUtils.asMap(
                 "resource_type", resourceType,
@@ -46,5 +46,30 @@ public class CloudinaryService {
                 "overwrite", false
             )
         );
+        if (result instanceof Map<?, ?> uploadResult) {
+            return uploadResult;
+        }
+        throw new IOException("Cloudinary returned an invalid upload response");
+    }
+
+    public void delete(String publicId, String resourceType) throws IOException {
+        if (!"image".equals(resourceType) && !"video".equals(resourceType) && !"raw".equals(resourceType)) {
+            throw new IOException("Unsupported Cloudinary resource type: " + resourceType);
+        }
+
+        Object result = cloudinary.uploader().destroy(
+            publicId,
+            ObjectUtils.asMap(
+                "resource_type", resourceType,
+                "invalidate", true
+            )
+        );
+        if (!(result instanceof Map<?, ?> deleteResponse)) {
+            throw new IOException("Cloudinary returned an invalid delete response");
+        }
+        Object deleteResult = deleteResponse.get("result");
+        if (!"ok".equals(deleteResult) && !"not found".equals(deleteResult)) {
+            throw new IOException("Cloudinary did not delete the uploaded training material");
+        }
     }
 }

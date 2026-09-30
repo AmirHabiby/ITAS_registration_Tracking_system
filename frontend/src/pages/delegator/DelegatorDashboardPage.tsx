@@ -1,6 +1,7 @@
 import { Card, Col, Row, Space, Statistic } from "antd";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/apiClient";
+import { RoleDashboardSidebar } from "../../components/RoleDashboardSidebar";
 import { DelegatorAssessmentOutcomes } from "./DelegatorAssessmentOutcomes";
 
 type Dashboard = {
@@ -32,14 +33,15 @@ export function DelegatorDashboardPage() {
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%" }}>
-      <Row gutter={16} className="dashboard-cards-row">
+      <Row gutter={16} className="dashboard-cards-row role-dashboard-cards">
         {Object.entries(dashboard).map(([key, value]) => (
-          <Col xs={24} sm={12} lg={8} key={key}>
+          <Col xs={24} sm={12} lg={8} key={key} className="role-dashboard-metric-column">
             <Card>
               <Statistic title={key} value={value} />
             </Card>
           </Col>
         ))}
+        <RoleDashboardSidebar />
       </Row>
       <DelegatorAssessmentOutcomes />
     </Space>

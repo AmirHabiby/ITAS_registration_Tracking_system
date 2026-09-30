@@ -1,6 +1,7 @@
 import { Card, Col, Row, Statistic } from "antd";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/apiClient";
+import { RoleDashboardSidebar } from "../../components/RoleDashboardSidebar";
 
 type Dashboard = {
   totalTrainings: number;
@@ -30,14 +31,15 @@ export function InstituteDashboardPage() {
     } satisfies Dashboard);
 
   return (
-    <Row gutter={16} className="dashboard-cards-row">
+    <Row className="dashboard-cards-row role-dashboard-cards institute-dashboard-cards">
       {Object.entries(dashboard).map(([key, value]) => (
-        <Col span={8} key={key}>
+        <Col span={8} key={key} className="role-dashboard-metric-column">
           <Card>
             <Statistic title={key} value={value} />
           </Card>
         </Col>
       ))}
+      <RoleDashboardSidebar />
     </Row>
   );
 }

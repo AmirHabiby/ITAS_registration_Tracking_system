@@ -77,7 +77,7 @@ public class MediaController {
 
         authorizeUpload(uploader, training);
 
-        Map result = cloudinaryService.upload(
+        Map<?, ?> result = cloudinaryService.upload(
             file,
             "rtts/training-materials"
         );

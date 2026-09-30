@@ -58,7 +58,7 @@ export function AdminCreateTrainingPage() {
     setUploadingWeek(weekNumber);
     try {
       await Promise.all(selectedFiles.map((file) =>
-        portalService.uploadTrainingMaterial(training.id, weekNumber, file, `Week ${weekNumber} material`)));
+        portalService.uploadTrainingMaterial(training.id, weekNumber, file)));
       message.success(`${selectedFiles.length} material(s) uploaded for week ${weekNumber}.`);
       setFiles((current) => ({ ...current, [weekNumber]: [] }));
     } catch {
@@ -121,7 +121,7 @@ export function AdminCreateTrainingPage() {
                   multiple
                   fileList={files[weekNumber] ?? []}
                   beforeUpload={() => false}
-                  onChange={({ fileList }) => setFiles((current) => ({ ...current, [weekNumber]: fileList.slice(-1) }))}
+                  onChange={({ fileList }) => setFiles((current) => ({ ...current, [weekNumber]: fileList }))}
                 >
                   <p className="ant-upload-drag-icon"><InboxOutlined /></p>
                   <p>Click or drag videos/documents here</p>
@@ -132,7 +132,7 @@ export function AdminCreateTrainingPage() {
                   loading={uploadingWeek === weekNumber}
                   onClick={() => void uploadWeekMaterial(weekNumber)}
                 >
-                  Upload week {weekNumber} material
+                  Upload week {weekNumber} materials
                 </Button>
               </Card>
             ))}
