@@ -4,12 +4,19 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class CloudinaryService {
+
+    private static final Set<String> PROFILE_IMAGE_CONTENT_TYPES =
+        Set.of("image/jpeg", "image/png", "image/webp");
+    private static final long MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
 
     private final Cloudinary cloudinary;
 
@@ -50,6 +57,24 @@ public class CloudinaryService {
             return uploadResult;
         }
         throw new IOException("Cloudinary returned an invalid upload response");
+    }
+
+    public Map<?, ?> uploadProfileImage(MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please select an image");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !PROFILE_IMAGE_CONTENT_TYPES.contains(contentType)) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Profile image must be a JPEG, PNG, or WebP image"
+            );
+        }
+        if (file.getSize() > MAX_PROFILE_IMAGE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile image must be 5 MB or smaller");
+        }
+
+        return upload(file, "rtts/profile-images");
     }
 
     public void delete(String publicId, String resourceType) throws IOException {

@@ -5,7 +5,7 @@ import { portalService } from "../../services/portalService";
 export function AdminDelegatorsPage() {
   return (
     <Card title="Create delegator">
-      <AdminCreateForm kind="delegator" onSubmit={async (body) => { await portalService.createDelegator(body); }} />
+      <AdminCreateForm kind="delegator" onSubmit={async (body, image) => { await portalService.createDelegator(body, image); }} />
     </Card>
   );
 }

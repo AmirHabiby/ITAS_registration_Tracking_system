@@ -12,7 +12,7 @@ import {
   message,
 } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   assessmentService,
   type CandidateAttempt,
@@ -37,6 +37,9 @@ function getErrorMessage(error: unknown, fallback: string) {
 export function RepresentativeAssessmentAttemptPage() {
   const { attemptId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
+  const returnPath = returnTo?.startsWith("/representative/trainings/") ? returnTo : null;
   const [attempt, setAttempt] = useState<CandidateAttempt | null>(null);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const answersRef = useRef<Record<string, Answer>>({});
@@ -197,7 +200,7 @@ export function RepresentativeAssessmentAttemptPage() {
   }
 
   if (loading) return <Card loading />;
-  if (!attempt) return <Alert type="error" showIcon message={error ?? "Attempt unavailable."} action={<Button onClick={() => navigate("/representative/assessments")}>Back to assessments</Button>} />;
+  if (!attempt) return <Alert type="error" showIcon message={error ?? "Attempt unavailable."} action={<Button onClick={() => navigate(returnPath ?? "/representative/assessments")}>{returnPath ? "Back to course materials" : "Back to assessments"}</Button>} />;
 
   const current = [...attempt.questions].sort((a, b) => a.displayOrder - b.displayOrder)[currentIndex];
   const remaining = Math.max(0, secondsAtSync.current - Math.floor((now - syncAt.current) / 1000));
@@ -221,7 +224,9 @@ export function RepresentativeAssessmentAttemptPage() {
             : "Your answers have been submitted and are immutable. The result will appear here after it is released."}
         />
         {error && <Alert style={{ marginTop: 16 }} type="error" showIcon message={error} />}
-        <Button style={{ marginTop: 16 }} onClick={() => navigate("/representative/assessments")}>View attempt history</Button>
+        <Button style={{ marginTop: 16 }} onClick={() => navigate(returnPath ?? "/representative/assessments")}>
+          {returnPath ? "Back to course materials" : "View attempt history"}
+        </Button>
       </Card>
     );
   }

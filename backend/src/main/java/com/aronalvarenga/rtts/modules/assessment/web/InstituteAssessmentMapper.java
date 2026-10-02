@@ -16,6 +16,7 @@ public final class InstituteAssessmentMapper {
             assessment.getTitle(),
             assessment.getInstructions(),
             assessment.getPassingScore(),
+            assessment.getWeekNumber(),
             assessment.getDurationMinutes(),
             assessment.getAttemptLimit(),
             assessment.getAvailableFrom(),

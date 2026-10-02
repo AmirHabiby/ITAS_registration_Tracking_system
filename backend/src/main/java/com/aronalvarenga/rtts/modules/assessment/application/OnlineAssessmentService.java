@@ -66,7 +66,8 @@ public class OnlineAssessmentService {
         String instructions,
         BigDecimal passingScore
     ) {
-        return createDraft(actorUserId, trainingId, title, instructions, passingScore, 60, 1, null, null, false, false);
+        return createDraft(actorUserId, trainingId, title, instructions, passingScore, null,
+            60, 1, null, null, false, false);
     }
 
     @Transactional
@@ -76,6 +77,25 @@ public class OnlineAssessmentService {
         String title,
         String instructions,
         BigDecimal passingScore,
+        int durationMinutes,
+        int attemptLimit,
+        Instant availableFrom,
+        Instant availableUntil,
+        boolean randomizeQuestions,
+        boolean randomizeOptions
+    ) {
+        return createDraft(actorUserId, trainingId, title, instructions, passingScore, null,
+            durationMinutes, attemptLimit, availableFrom, availableUntil, randomizeQuestions, randomizeOptions);
+    }
+
+    @Transactional
+    public OnlineAssessment createDraft(
+        UUID actorUserId,
+        UUID trainingId,
+        String title,
+        String instructions,
+        BigDecimal passingScore,
+        Integer weekNumber,
         int durationMinutes,
         int attemptLimit,
         Instant availableFrom,
@@ -96,7 +116,33 @@ public class OnlineAssessmentService {
             actor,
             title.trim(),
             instructions,
-            passingScore);
+            passingScore,
+            weekNumber);
+        assessment.configure(durationMinutes, attemptLimit, availableFrom, availableUntil, randomizeQuestions, randomizeOptions);
+        return assessmentRepository.save(assessment);
+    }
+
+    @Transactional
+    public OnlineAssessment updateDraft(
+        UUID actorUserId,
+        UUID assessmentId,
+        String title,
+        String instructions,
+        BigDecimal passingScore,
+        Integer weekNumber,
+        int durationMinutes,
+        int attemptLimit,
+        Instant availableFrom,
+        Instant availableUntil,
+        boolean randomizeQuestions,
+        boolean randomizeOptions
+    ) {
+        OnlineAssessment assessment = getAssessment(assessmentId);
+        authorizeTrainingOwner(getUser(actorUserId), assessment.getTraining());
+        requireDraft(assessment);
+        validateAssessment(title, instructions, passingScore);
+        validateConfiguration(durationMinutes, attemptLimit, availableFrom, availableUntil);
+        assessment.updateDetails(title.trim(), instructions, passingScore, weekNumber);
         assessment.configure(durationMinutes, attemptLimit, availableFrom, availableUntil, randomizeQuestions, randomizeOptions);
         return assessmentRepository.save(assessment);
     }
@@ -116,13 +162,9 @@ public class OnlineAssessmentService {
         boolean randomizeOptions
     ) {
         OnlineAssessment assessment = getAssessment(assessmentId);
-        authorizeTrainingOwner(getUser(actorUserId), assessment.getTraining());
-        requireDraft(assessment);
-        validateAssessment(title, instructions, passingScore);
-        validateConfiguration(durationMinutes, attemptLimit, availableFrom, availableUntil);
-        assessment.updateDetails(title.trim(), instructions, passingScore);
-        assessment.configure(durationMinutes, attemptLimit, availableFrom, availableUntil, randomizeQuestions, randomizeOptions);
-        return assessmentRepository.save(assessment);
+        return updateDraft(actorUserId, assessmentId, title, instructions, passingScore,
+            assessment.getWeekNumber(), durationMinutes, attemptLimit, availableFrom, availableUntil,
+            randomizeQuestions, randomizeOptions);
     }
 
     @Transactional
@@ -140,6 +182,7 @@ public class OnlineAssessmentService {
             title,
             instructions,
             passingScore,
+            assessment.getWeekNumber(),
             assessment.getDurationMinutes(),
             assessment.getAttemptLimit(),
             assessment.getAvailableFrom(),
@@ -404,7 +447,7 @@ public class OnlineAssessmentService {
             .getVersionNumber() + 1;
         OnlineAssessment revision = new OnlineAssessment(
             source.getAssessmentSeriesId(), nextVersion, source.getTraining(), actor, source.getTitle(),
-            source.getInstructions(), source.getPassingScore());
+            source.getInstructions(), source.getPassingScore(), source.getWeekNumber());
         revision.configure(source.getDurationMinutes(), source.getAttemptLimit(), source.getAvailableFrom(),
             source.getAvailableUntil(), source.isRandomizeQuestions(), source.isRandomizeOptions());
 

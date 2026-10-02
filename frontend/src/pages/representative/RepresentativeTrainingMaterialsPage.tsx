@@ -2,6 +2,7 @@ import {
   CheckCircleFilled,
   DownloadOutlined,
   FileTextOutlined,
+  LockOutlined,
   LeftOutlined,
   RightOutlined,
   VideoCameraOutlined,
@@ -15,6 +16,7 @@ import {
   type Training,
   type TrainingMaterial,
 } from "../../services/portalService";
+import { assessmentService } from "../../services/assessmentService";
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -32,8 +34,10 @@ export function RepresentativeTrainingMaterialsPage() {
     completedCount: 0,
     totalCount: 0,
     percentage: 0,
+    weeks: [],
   });
   const [completingMaterialId, setCompletingMaterialId] = useState<string | null>(null);
+  const [startingQuizWeek, setStartingQuizWeek] = useState<number | null>(null);
   const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +91,6 @@ export function RepresentativeTrainingMaterialsPage() {
     ? sortedMaterials.findIndex((material) => material.id === selectedMaterial.id)
     : -1;
   const completedMaterialIds = new Set(progress.completedMaterialIds);
-
   async function completeMaterial(material: TrainingMaterial) {
     if (!trainingId || completedMaterialIds.has(material.id)) return;
     setCompletingMaterialId(material.id);
@@ -99,6 +102,21 @@ export function RepresentativeTrainingMaterialsPage() {
       message.error("Unable to save your course progress. Please try again.");
     } finally {
       setCompletingMaterialId(null);
+    }
+  }
+
+  async function startWeekQuiz(weekNumber: number, assessmentId: string) {
+    if (!trainingId) return;
+    setStartingQuizWeek(weekNumber);
+    try {
+      const attempt = await assessmentService.startAttempt(assessmentId);
+      navigate(`/representative/assessment-attempts/${attempt.data.id}?returnTo=${
+        encodeURIComponent(`/representative/trainings/${trainingId}/materials`)
+      }`);
+    } catch {
+      message.error("Unable to start this quiz. Check its availability or attempt limit and try again.");
+    } finally {
+      setStartingQuizWeek(null);
     }
   }
 
@@ -224,21 +242,32 @@ export function RepresentativeTrainingMaterialsPage() {
           <Card
             className="training-course-outline"
             title="Course content"
-            extra={<Text type="secondary">{sortedMaterials.length} lessons</Text>}
+            extra={<Text type="secondary">{progress.totalCount} lessons</Text>}
             loading={loading}
           >
-            {sortedMaterials.length === 0 ? (
+            {progress.weeks.length === 0 ? (
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No lessons yet" />
             ) : (
-              Object.entries(materialsByWeek)
-                .sort(([firstWeek], [secondWeek]) => Number(firstWeek) - Number(secondWeek))
-                .map(([weekNumber, weekMaterials]) => (
+              progress.weeks.map((week) => {
+                const weekNumber = week.weekNumber;
+                const weekMaterials = materialsByWeek[weekNumber] ?? [];
+                return (
                   <section className="training-course-week" key={weekNumber}>
                     <div className="training-course-week-heading">
                       <Text strong>Week {weekNumber}</Text>
-                      <Text type="secondary">{weekMaterials.length} lessons</Text>
+                      <Text type="secondary">
+                        {week.unlocked
+                          ? `${weekMaterials.length} lessons`
+                          : <><LockOutlined /> Locked</>}
+                      </Text>
                     </div>
-                    {weekMaterials.map((material) => {
+                    {!week.unlocked ? (
+                      <Alert
+                        type="info"
+                        showIcon
+                        message="Complete the previous week's materials and pass its quiz to unlock this week."
+                      />
+                    ) : weekMaterials.map((material) => {
                       const selected = material.id === selectedMaterial?.id;
                       return (
                         <button
@@ -267,8 +296,29 @@ export function RepresentativeTrainingMaterialsPage() {
                         </button>
                       );
                     })}
+                    {week.assessmentId && (
+                      <div className="training-course-week-quiz">
+                        {week.quizPassed ? (
+                          <Tag color="success">Quiz passed · {week.passingScore}% required</Tag>
+                        ) : (
+                          <Button
+                            type="primary"
+                            disabled={!week.unlocked || !week.materialsCompleted}
+                            loading={startingQuizWeek === weekNumber}
+                            onClick={() => {
+                              if (week.assessmentId) void startWeekQuiz(weekNumber, week.assessmentId);
+                            }}
+                          >
+                            {week.materialsCompleted
+                              ? `Take week ${weekNumber} quiz (${week.passingScore}% to pass)`
+                              : `Complete week ${weekNumber} materials to take quiz`}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </section>
-                ))
+                );
+              })
             )}
           </Card>
         </aside>

@@ -6,6 +6,7 @@ export type AuthUser = {
   role: string;
   displayName: string;
   enabled: boolean;
+  profileImageUrl: string | null;
 };
 
 export type LoginResponse = {

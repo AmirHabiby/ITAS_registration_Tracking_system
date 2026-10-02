@@ -19,6 +19,7 @@ import {
   message,
 } from "antd";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import dayjs, { type Dayjs } from "dayjs";
 import { portalService, type Training } from "../../services/portalService";
 import {
@@ -62,6 +63,7 @@ function toDraft(values: SettingsValues): AssessmentDraft {
     title: values.title.trim(),
     instructions: values.instructions?.trim() ?? "",
     passingScore: values.passingScore,
+    weekNumber: values.weekNumber ?? null,
     durationMinutes: values.durationMinutes,
     attemptLimit: values.attemptLimit,
     availableFrom: values.availability?.[0]?.toISOString() ?? null,
@@ -78,6 +80,7 @@ function statusColor(status: string) {
 }
 
 export function InstituteAssessmentsPage() {
+  const [searchParams] = useSearchParams();
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [trainingId, setTrainingId] = useState<string>();
   const [assessments, setAssessments] = useState<InstituteAssessment[]>([]);
@@ -154,7 +157,9 @@ export function InstituteAssessmentsPage() {
         else setError(formatError(queueResult.reason, "Unable to load the grading queue."));
         if (completedResult.status === "fulfilled") setCompletedAttempts(completedResult.value.data);
         else setError(formatError(completedResult.reason, "Unable to load completed attempts."));
-        const selected = nextTrainings[0]?.id;
+        const requestedTrainingId = searchParams.get("trainingId");
+        const selected = nextTrainings.find((training) => training.id === requestedTrainingId)?.id
+          ?? nextTrainings[0]?.id;
         setTrainingId(selected);
         if (selected) {
           const results = await Promise.all(nextTrainings.map((training) =>
@@ -170,7 +175,7 @@ export function InstituteAssessmentsPage() {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [searchParams]);
 
   const selectedTraining = useMemo(
     () => trainings.find((training) => training.id === trainingId),
@@ -196,6 +201,11 @@ export function InstituteAssessmentsPage() {
     if (selectedTraining?.passingScore !== null && selectedTraining?.passingScore !== undefined) {
       settingsForm.setFieldValue("passingScore", selectedTraining.passingScore);
     }
+    const requestedWeek = Number(searchParams.get("weekNumber"));
+    if (searchParams.get("trainingId") === trainingId
+      && Number.isInteger(requestedWeek) && requestedWeek > 0) {
+      settingsForm.setFieldValue("weekNumber", requestedWeek);
+    }
     setSettingsOpen(true);
   }
 
@@ -205,6 +215,7 @@ export function InstituteAssessmentsPage() {
       title: assessment.title,
       instructions: assessment.instructions,
       passingScore: assessment.passingScore,
+      weekNumber: assessment.weekNumber,
       durationMinutes: assessment.durationMinutes,
       attemptLimit: assessment.attemptLimit,
       availability: [
@@ -488,6 +499,7 @@ export function InstituteAssessmentsPage() {
 
   const assessmentColumns = [
     { title: "Assessment", dataIndex: "title", key: "title" },
+    { title: "Course week", dataIndex: "weekNumber", key: "weekNumber", render: (value: number | null) => value ? `Week ${value}` : "—" },
     { title: "Version", dataIndex: "version", key: "version" },
     { title: "Duration", dataIndex: "durationMinutes", key: "duration", render: (value: number) => `${value} min` },
     { title: "Questions", dataIndex: "questions", key: "questions", render: (questions: InstituteAssessment["questions"]) => questions.length },
@@ -727,6 +739,14 @@ export function InstituteAssessmentsPage() {
           </Form.Item>
           <Form.Item name="instructions" label="Instructions" rules={[{ max: 2000 }]}>
             <Input.TextArea rows={3} maxLength={2000} />
+          </Form.Item>
+          <Form.Item
+            name="weekNumber"
+            label="Course week (for a weekly quiz)"
+            extra="Set the week number to link this assessment to the matching course materials and unlock the next week on a pass."
+            rules={[{ type: "number", min: 1 }]}
+          >
+            <InputNumber min={1} precision={0} />
           </Form.Item>
           <Space size="middle" wrap style={{ width: "100%" }}>
             <Form.Item name="durationMinutes" label="Duration (minutes)" rules={[{ required: true }]}><InputNumber min={1} max={1440} /></Form.Item>

@@ -28,6 +28,7 @@ export type InstituteAssessment = {
   title: string;
   instructions: string;
   passingScore: number;
+  weekNumber: number | null;
   durationMinutes: number;
   attemptLimit: number;
   availableFrom: string | null;
@@ -42,6 +43,7 @@ export type AssessmentDraft = {
   title: string;
   instructions: string;
   passingScore: number;
+  weekNumber: number | null;
   durationMinutes: number;
   attemptLimit: number;
   availableFrom: string | null;

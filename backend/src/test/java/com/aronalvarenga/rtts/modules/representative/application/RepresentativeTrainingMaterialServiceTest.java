@@ -10,6 +10,9 @@ import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestRepository;
 import com.aronalvarenga.rtts.modules.requests.domain.TrainingRequestStatus;
 import com.aronalvarenga.rtts.modules.representative.domain.RepresentativeTrainingMaterialProgress;
 import com.aronalvarenga.rtts.modules.representative.domain.RepresentativeTrainingMaterialProgressRepository;
+import com.aronalvarenga.rtts.modules.assessment.domain.AssessmentResultRecordRepository;
+import com.aronalvarenga.rtts.modules.assessment.domain.OnlineAssessment;
+import com.aronalvarenga.rtts.modules.assessment.domain.OnlineAssessmentRepository;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingMaterial;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingMaterialRepository;
 import java.util.List;
@@ -32,6 +35,12 @@ class RepresentativeTrainingMaterialServiceTest {
 
     @Mock
     private RepresentativeTrainingMaterialProgressRepository progressRepository;
+
+    @Mock
+    private OnlineAssessmentRepository assessmentRepository;
+
+    @Mock
+    private AssessmentResultRecordRepository assessmentResultRepository;
 
     @InjectMocks
     private RepresentativeTrainingMaterialService service;
@@ -128,6 +137,7 @@ class RepresentativeTrainingMaterialServiceTest {
         when(trainingMaterialRepository.findById(materialId)).thenReturn(java.util.Optional.of(material));
         when(material.getTrainingId()).thenReturn(trainingId);
         when(material.getId()).thenReturn(materialId);
+        when(material.getWeekNumber()).thenReturn(1);
         when(progressRepository.existsByRepresentativeIdAndMaterialId(representativeId, materialId))
             .thenReturn(false);
         when(trainingMaterialRepository.findByTrainingIdOrderByWeekNumberAscCreatedAtAsc(trainingId))
@@ -144,5 +154,51 @@ class RepresentativeTrainingMaterialServiceTest {
         verify(progressRepository).save(any(RepresentativeTrainingMaterialProgress.class));
         assertEquals(List.of(materialId), progress.completedMaterialIds());
         assertEquals(100, progress.percentage());
+    }
+
+    @Test
+    void unlocksFollowingWeekOnlyAfterCurrentWeekMaterialsAndQuizAreCompleted() {
+        UUID representativeId = UUID.randomUUID();
+        UUID trainingId = UUID.randomUUID();
+        UUID firstMaterialId = UUID.randomUUID();
+        UUID secondMaterialId = UUID.randomUUID();
+        UUID quizId = UUID.randomUUID();
+        TrainingMaterial firstWeekMaterial = org.mockito.Mockito.mock(TrainingMaterial.class);
+        TrainingMaterial secondWeekMaterial = org.mockito.Mockito.mock(TrainingMaterial.class);
+        RepresentativeTrainingMaterialProgress completed =
+            new RepresentativeTrainingMaterialProgress(representativeId, trainingId, firstMaterialId);
+        OnlineAssessment quiz = org.mockito.Mockito.mock(OnlineAssessment.class);
+
+        when(trainingRequestRepository.existsByRepresentativeIdAndTrainingIdAndStatus(
+            representativeId, trainingId, TrainingRequestStatus.APPROVED)).thenReturn(true);
+        when(trainingMaterialRepository.findByTrainingIdOrderByWeekNumberAscCreatedAtAsc(trainingId))
+            .thenReturn(List.of(firstWeekMaterial, secondWeekMaterial));
+        when(firstWeekMaterial.getId()).thenReturn(firstMaterialId);
+        when(firstWeekMaterial.getWeekNumber()).thenReturn(1);
+        when(secondWeekMaterial.getId()).thenReturn(secondMaterialId);
+        when(secondWeekMaterial.getWeekNumber()).thenReturn(2);
+        when(progressRepository.findByRepresentativeIdAndTrainingId(representativeId, trainingId))
+            .thenReturn(List.of(completed));
+        when(assessmentRepository.findByTraining_IdAndStatusOrderByCreatedAtDesc(
+            trainingId, com.aronalvarenga.rtts.modules.assessment.domain.AssessmentStatus.PUBLISHED))
+            .thenReturn(List.of(quiz));
+        when(quiz.getWeekNumber()).thenReturn(1);
+        when(quiz.getId()).thenReturn(quizId);
+        when(quiz.getTitle()).thenReturn("Week one quiz");
+        when(quiz.getPassingScore()).thenReturn(new java.math.BigDecimal("75.00"));
+        when(assessmentResultRepository.existsPassedFinalResult(representativeId, quizId)).thenReturn(false);
+
+        RepresentativeTrainingProgress progress = service.getProgress(representativeId, trainingId);
+
+        assertEquals(2, progress.weeks().size());
+        assertEquals(true, progress.weeks().get(0).unlocked());
+        assertEquals(true, progress.weeks().get(0).materialsCompleted());
+        assertEquals(false, progress.weeks().get(0).quizPassed());
+        assertEquals(false, progress.weeks().get(1).unlocked());
+        assertEquals(false, progress.weeks().get(1).materialsCompleted());
+
+        when(assessmentResultRepository.existsPassedFinalResult(representativeId, quizId)).thenReturn(true);
+        RepresentativeTrainingProgress passedProgress = service.getProgress(representativeId, trainingId);
+        assertEquals(true, passedProgress.weeks().get(1).unlocked());
     }
 }

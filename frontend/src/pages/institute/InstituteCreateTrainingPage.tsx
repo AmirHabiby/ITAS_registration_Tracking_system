@@ -118,7 +118,11 @@ export function InstituteCreateTrainingPage() {
             <Alert message="Create the training first to enable material uploads." type="info" showIcon />
           ) : createdTraining.accessType === 'PRIVATE' ? (
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Alert message="Upload the videos and documents for each week of this training." type="info" showIcon />
+              <Alert
+                message="Upload the videos and documents for each week, then set up and publish its quiz in Assessments."
+                type="info"
+                showIcon
+              />
               {Array.from({ length: weeks }, (_, index) => index + 1).map((weekNumber) => (
                 <Card size="small" title={`Week ${weekNumber}`} key={weekNumber}>
                   <Dragger
@@ -137,6 +141,14 @@ export function InstituteCreateTrainingPage() {
                     onClick={() => void uploadWeekMaterial(weekNumber)}
                   >
                     Upload week {weekNumber} materials
+                  </Button>
+                  <Button
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ marginTop: 12 }}
+                    href={`/institute/assessments?trainingId=${createdTraining.id}&weekNumber=${weekNumber}`}
+                  >
+                    Set up week {weekNumber} quiz
                   </Button>
                 </Card>
               ))}

@@ -33,6 +33,7 @@ import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
 import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentStatus;
 import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
 import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
+import com.aronalvarenga.rtts.modules.representative.application.RepresentativeTrainingMaterialService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.security.SecureRandom;
@@ -67,6 +68,7 @@ public class AssessmentAttemptService {
     private final EnrollmentRepository enrollmentRepository;
     private final RepresentativeRepository representativeRepository;
     private final UserAccountRepository userAccountRepository;
+    private final RepresentativeTrainingMaterialService trainingMaterialService;
     private final Clock clock;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -82,6 +84,7 @@ public class AssessmentAttemptService {
         EnrollmentRepository enrollmentRepository,
         RepresentativeRepository representativeRepository,
         UserAccountRepository userAccountRepository,
+        RepresentativeTrainingMaterialService trainingMaterialService,
         Clock clock
     ) {
         this.assessmentRepository = assessmentRepository;
@@ -95,6 +98,7 @@ public class AssessmentAttemptService {
         this.enrollmentRepository = enrollmentRepository;
         this.representativeRepository = representativeRepository;
         this.userAccountRepository = userAccountRepository;
+        this.trainingMaterialService = trainingMaterialService;
         this.clock = clock;
     }
 
@@ -202,6 +206,10 @@ public class AssessmentAttemptService {
             .map(found -> enrollmentRepository.findByIdForUpdate(found.getId()).orElseThrow())
             .orElseThrow(() -> forbidden("You are not enrolled in this training"));
         requireEligible(enrollment);
+        if (assessment.getWeekNumber() != null) {
+            trainingMaterialService.requireQuizReady(
+                representative.getId(), assessment.getTraining().getId(), assessment.getWeekNumber());
+        }
 
         Instant now = clock.instant();
         expireActiveIfPastDeadline(assessmentId, enrollment.getId(), now);

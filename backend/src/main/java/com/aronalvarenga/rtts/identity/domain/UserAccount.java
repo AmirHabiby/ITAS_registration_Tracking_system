@@ -35,6 +35,9 @@ public class UserAccount extends AuditableEntity {
     @Column(name = "display_name", nullable = false)
     private String displayName;
 
+    @Column(name = "profile_image_url", length = 2048)
+    private String profileImageUrl;
+
     protected UserAccount() {
     }
 
@@ -69,6 +72,10 @@ public class UserAccount extends AuditableEntity {
         return displayName;
     }
 
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
     public void setId(UUID id) {
         this.id = id;
     }
@@ -91,5 +98,9 @@ public class UserAccount extends AuditableEntity {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }

@@ -42,4 +42,5 @@ public class FirmAdminProfile extends AuditableEntity {
     public UUID getFirmId() { return firmId; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 }

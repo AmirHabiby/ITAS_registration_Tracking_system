@@ -21,5 +21,6 @@ public record AssessmentDraftRequest(
     Instant availableFrom,
     Instant availableUntil,
     boolean randomizeQuestions,
-    boolean randomizeOptions
+    boolean randomizeOptions,
+    @Min(1) Integer weekNumber
 ) {}

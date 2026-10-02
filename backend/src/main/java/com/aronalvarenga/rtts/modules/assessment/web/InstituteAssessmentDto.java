@@ -13,6 +13,7 @@ public record InstituteAssessmentDto(
     String title,
     String instructions,
     BigDecimal passingScore,
+    Integer weekNumber,
     int durationMinutes,
     int attemptLimit,
     Instant availableFrom,

@@ -85,6 +85,9 @@ public class OnlineAssessment extends AuditableEntity {
     @Column(name = "passing_score", nullable = false, precision = 5, scale = 2)
     private BigDecimal passingScore;
 
+    @Column(name = "week_number")
+    private Integer weekNumber;
+
     @Positive
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes = 60;
@@ -124,7 +127,8 @@ public class OnlineAssessment extends AuditableEntity {
         UserAccount createdBy,
         String title,
         String instructions,
-        BigDecimal passingScore
+        BigDecimal passingScore,
+        Integer weekNumber
     ) {
         this.assessmentSeriesId = assessmentSeriesId;
         this.versionNumber = versionNumber;
@@ -133,6 +137,19 @@ public class OnlineAssessment extends AuditableEntity {
         this.title = title;
         this.instructions = instructions;
         this.passingScore = passingScore;
+        this.weekNumber = weekNumber;
+    }
+
+    public OnlineAssessment(
+        UUID assessmentSeriesId,
+        int versionNumber,
+        Training training,
+        UserAccount createdBy,
+        String title,
+        String instructions,
+        BigDecimal passingScore
+    ) {
+        this(assessmentSeriesId, versionNumber, training, createdBy, title, instructions, passingScore, null);
     }
 
     public void addQuestion(AssessmentQuestion question) {
@@ -140,11 +157,12 @@ public class OnlineAssessment extends AuditableEntity {
         questions.add(question);
     }
 
-    public void updateDetails(String title, String instructions, BigDecimal passingScore) {
+    public void updateDetails(String title, String instructions, BigDecimal passingScore, Integer weekNumber) {
         ensureDraft();
         this.title = title;
         this.instructions = instructions;
         this.passingScore = passingScore;
+        this.weekNumber = weekNumber;
     }
 
     public void configure(
@@ -204,6 +222,7 @@ public class OnlineAssessment extends AuditableEntity {
     public String getTitle() { return title; }
     public String getInstructions() { return instructions; }
     public BigDecimal getPassingScore() { return passingScore; }
+    public Integer getWeekNumber() { return weekNumber; }
     public int getDurationMinutes() { return durationMinutes; }
     public int getAttemptLimit() { return attemptLimit; }
     public Instant getAvailableFrom() { return availableFrom; }

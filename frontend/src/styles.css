@@ -280,10 +280,33 @@ body {
   font-size: 20px;
 }
 
+.role-layout-header .ant-space {
+  display: flex;
+  align-items: center;
+}
+
 .role-layout-avatar-button {
-  height: auto;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0 !important;
   padding: 0;
+  line-height: 0;
+  vertical-align: middle;
   border-radius: 50%;
+}
+
+.role-layout-avatar-button > span,
+.role-layout-avatar-button .ant-avatar {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  vertical-align: middle;
 }
 
 .role-layout-overlay {

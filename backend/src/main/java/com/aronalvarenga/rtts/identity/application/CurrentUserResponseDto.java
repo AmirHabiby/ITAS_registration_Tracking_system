@@ -7,6 +7,7 @@ public record CurrentUserResponseDto(
     String username,
     String role,
     String displayName,
-    boolean enabled
+    boolean enabled,
+    String profileImageUrl
 ) {
 }

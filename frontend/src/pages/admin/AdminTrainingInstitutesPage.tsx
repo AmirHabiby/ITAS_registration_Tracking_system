@@ -5,7 +5,7 @@ import { portalService } from "../../services/portalService";
 export function AdminTrainingInstitutesPage() {
   return (
     <Card title="Create training institute">
-      <AdminCreateForm kind="institute" onSubmit={async (body) => { await portalService.createInstitute(body); }} />
+      <AdminCreateForm kind="institute" onSubmit={async (body, image) => { await portalService.createInstitute(body, image); }} />
     </Card>
   );
 }

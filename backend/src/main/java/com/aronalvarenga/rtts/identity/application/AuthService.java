@@ -36,6 +36,13 @@ public class AuthService {
         }
         UserAccount userAccount = userAccountRepository.findByUsername(jwt.getSubject())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token"));
-        return new CurrentUserResponseDto(userAccount.getId(), userAccount.getUsername(), userAccount.getRole().name(), userAccount.getDisplayName(), userAccount.isEnabled());
+        return new CurrentUserResponseDto(
+            userAccount.getId(),
+            userAccount.getUsername(),
+            userAccount.getRole().name(),
+            userAccount.getDisplayName(),
+            userAccount.isEnabled(),
+            userAccount.getProfileImageUrl()
+        );
     }
 }

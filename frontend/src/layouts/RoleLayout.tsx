@@ -1,4 +1,4 @@
-import { Avatar, Badge, Button, Layout, Menu, Popover, Space, Typography } from "antd";
+import { Avatar, Badge, Button, Dropdown, Form, Image, Input, Layout, Menu, Modal, Popover, Space, Typography, Upload, message } from "antd";
 import {
   BankOutlined,
   BellOutlined,
@@ -21,6 +21,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { apiClient } from "../services/apiClient";
 import { assessmentService } from "../services/assessmentService";
+import { portalService } from "../services/portalService";
 import logo from "../assets/logo_no_bg.png";
 
 const { Header, Sider, Content } = Layout;
@@ -156,10 +157,12 @@ const menus: Record<
 };
 
 export function RoleLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const items = useMemo(() => menus[user?.role ?? ""] ?? [], [user?.role]);
+  const canUpdateProfile = ["SYSTEM_ADMIN", "REPRESENTATIVE", "DELEGATOR", "TRAINING_INSTITUTE", "FIRM_ADMIN"]
+    .includes(user?.role ?? "");
   const [collapsed, setCollapsed] = useState(false);
   const [notificationSummary, setNotificationSummary] = useState<NotificationSummary>({
     count: 0,
@@ -168,6 +171,17 @@ export function RoleLayout({ children }: { children: React.ReactNode }) {
   });
   const [notificationError, setNotificationError] = useState<string | null>(null);
   const [notificationLoading, setNotificationLoading] = useState(true);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileImage, setProfileImage] = useState<File>();
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [profileForm] = Form.useForm<{ fullName: string }>();
+
+  useEffect(() => {
+    if (!profileImagePreview?.startsWith("blob:")) return;
+    return () => URL.revokeObjectURL(profileImagePreview);
+  }, [profileImagePreview]);
 
   useEffect(() => {
     let active = true;
@@ -244,6 +258,42 @@ export function RoleLayout({ children }: { children: React.ReactNode }) {
   function signOut() {
     logout();
     void navigate("/login");
+  }
+
+  async function openProfileEditor() {
+    if (profileLoading) return;
+    setProfileImage(undefined);
+    setProfileImagePreview(null);
+    setProfileLoading(true);
+    try {
+      const response = await portalService.getOwnProfile();
+      profileForm.setFieldsValue({ fullName: response.data.fullName });
+      setProfileModalOpen(true);
+    } catch {
+      message.error("Unable to load your profile. Please try again.");
+    } finally {
+      setProfileLoading(false);
+    }
+  }
+
+  async function saveProfile(values: { fullName: string }) {
+    setProfileSaving(true);
+    try {
+      await portalService.updateOwnProfile(values.fullName, profileImage);
+      setProfileModalOpen(false);
+      setProfileImage(undefined);
+      setProfileImagePreview(null);
+      message.success("Profile updated.");
+      try {
+        await refreshUser();
+      } catch {
+        message.error("Profile saved, but the navbar could not refresh. Reload the page to see the latest details.");
+      }
+    } catch {
+      message.error("Unable to update your profile. Please try again.");
+    } finally {
+      setProfileSaving(false);
+    }
   }
 
   const notificationContent = notificationError
@@ -343,17 +393,114 @@ export function RoleLayout({ children }: { children: React.ReactNode }) {
                   />
                 </Badge>
               </Popover>
-              <Popover
-                title={user?.displayName}
-                content={<Typography.Text type="secondary">{user?.username}</Typography.Text>}
-                trigger="click"
-              >
-                <Button type="text" className="role-layout-avatar-button" aria-label="Open profile menu">
-                  <Avatar icon={<UserOutlined />} />
-                </Button>
-              </Popover>
+              {canUpdateProfile ? (
+                <Dropdown
+                  trigger={["click"]}
+                  menu={{
+                    items: [{ key: "update-profile", label: "Update profile", disabled: profileLoading }],
+                    onClick: () => void openProfileEditor(),
+                  }}
+                >
+                  <Button
+                    type="text"
+                    className="role-layout-avatar-button"
+                    aria-label="Open profile menu"
+                    title="Open profile menu"
+                  >
+                    <Avatar size={40} src={user?.profileImageUrl ?? undefined} icon={<UserOutlined />} />
+                  </Button>
+                </Dropdown>
+              ) : (
+                <Popover
+                  title={user?.displayName}
+                  content={<Typography.Text type="secondary">{user?.username}</Typography.Text>}
+                  trigger="click"
+                >
+                  <Button
+                    type="text"
+                    className="role-layout-avatar-button"
+                    aria-label="Open profile menu"
+                    title="Open profile menu"
+                  >
+                    <Avatar icon={<UserOutlined />} />
+                  </Button>
+                </Popover>
+              )}
             </Space>
           </Header>
+          {canUpdateProfile && (
+            <Modal
+              title="Update profile"
+              open={profileModalOpen}
+              onCancel={() => {
+                setProfileModalOpen(false);
+                setProfileImage(undefined);
+                setProfileImagePreview(null);
+              }}
+              footer={null}
+              destroyOnClose
+            >
+              <Form
+                form={profileForm}
+                layout="vertical"
+                disabled={profileLoading}
+                onFinish={(values) => void saveProfile(values)}
+              >
+                <Form.Item
+                  name="fullName"
+                  label="Name"
+                  rules={[
+                    { required: true, whitespace: true, message: "Enter your name." },
+                    { max: 160, message: "Name must be 160 characters or fewer." },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item label="Profile picture">
+                  <Space direction="vertical" size="middle">
+                    <Image
+                      src={profileImagePreview ?? user?.profileImageUrl ?? undefined}
+                      alt="Profile picture preview"
+                      width={100}
+                      height={100}
+                      preview={false}
+                      style={{ borderRadius: "50%", objectFit: "cover" }}
+                    />
+                  <Upload
+                    accept="image/jpeg,image/png,image/webp"
+                    beforeUpload={(file) => {
+                      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+                        message.error("Choose a JPEG, PNG, or WebP image.");
+                        return Upload.LIST_IGNORE;
+                      }
+                      if (file.size > 5 * 1024 * 1024) {
+                        message.error("Profile images must be 5 MB or smaller.");
+                        return Upload.LIST_IGNORE;
+                      }
+                      setProfileImage(file);
+                      setProfileImagePreview(URL.createObjectURL(file));
+                      return false;
+                    }}
+                    onRemove={() => {
+                      setProfileImage(undefined);
+                      setProfileImagePreview(null);
+                    }}
+                    showUploadList={false}
+                    maxCount={1}
+                  >
+                    <Button>{profileImage ? "Choose another image" : "Select image"}</Button>
+                  </Upload>
+                  </Space>
+                </Form.Item>
+                <Space>
+                  <Button onClick={() => setProfileModalOpen(false)}>Cancel</Button>
+                  <Button type="primary" htmlType="submit" loading={profileSaving}>
+                    Save profile
+                  </Button>
+                </Space>
+              </Form>
+            </Modal>
+          )}
           <Content className="role-layout-content">{children}</Content>
         </Layout>
       </Layout>

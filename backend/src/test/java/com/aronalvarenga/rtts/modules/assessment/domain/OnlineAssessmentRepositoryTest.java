@@ -12,6 +12,7 @@ import com.aronalvarenga.rtts.modules.assessment.application.AssessmentAttemptSe
 import com.aronalvarenga.rtts.modules.assessment.application.AssessmentGradingService;
 import com.aronalvarenga.rtts.modules.assessment.application.OnlineAssessmentService;
 import com.aronalvarenga.rtts.modules.delegator.application.DelegatorAssessmentOutcomeService;
+import com.aronalvarenga.rtts.modules.representative.application.RepresentativeTrainingMaterialService;
 import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfile;
 import com.aronalvarenga.rtts.modules.delegator.domain.DelegatorProfileRepository;
 import com.aronalvarenga.rtts.modules.agentdelegation.domain.AgentDelegation;
@@ -24,6 +25,7 @@ import com.aronalvarenga.rtts.modules.assessment.web.CandidateAssessmentMapper;
 import com.aronalvarenga.rtts.modules.assessment.web.WrittenQuestionGradeRequest;
 import com.aronalvarenga.rtts.modules.enrollments.domain.Enrollment;
 import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
+import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentStatus;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstitute;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstituteRepository;
 import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
@@ -63,6 +65,7 @@ import org.springframework.web.server.ResponseStatusException;
     AssessmentAttemptService.class,
     AssessmentGradingService.class,
     DelegatorAssessmentOutcomeService.class,
+    RepresentativeTrainingMaterialService.class,
     AssessmentTestClockConfiguration.class
 })
 class OnlineAssessmentRepositoryTest {
@@ -646,6 +649,11 @@ class OnlineAssessmentRepositoryTest {
         assertEquals(404, notReleased.getStatusCode().value());
         AssessmentResultDto released = gradingService.releaseResult(instituteUser.getId(), started.id());
         assertEquals(clock.instant(), released.releasedAt());
+        assertEquals(EnrollmentStatus.COMPLETED,
+            enrollmentRepository.findById(enrollment.getId()).orElseThrow().getStatus());
+        assertEquals(true, enrollmentRepository.findById(enrollment.getId()).orElseThrow().getPassed());
+        assertEquals(com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeStatus.TRAINED,
+            representativeRepository.findById(representative.getId()).orElseThrow().getStatus());
         assertEquals(released, gradingService.releaseResult(instituteUser.getId(), started.id()));
         assertEquals(released, gradingService.getReleasedCandidateResult(representativeUser.getId(), started.id()));
         assertEquals(1, releaseRepository.findByAttempt_IdOrderByReleaseNumberDesc(started.id()).size());

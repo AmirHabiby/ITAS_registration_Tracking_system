@@ -8,6 +8,13 @@ public final class UserMapper {
     }
 
     public static UserResponseDto toDto(UserAccount userAccount) {
-        return new UserResponseDto(userAccount.getId(), userAccount.getUsername(), userAccount.getRole(), userAccount.isEnabled(), userAccount.getDisplayName());
+        return new UserResponseDto(
+            userAccount.getId(),
+            userAccount.getUsername(),
+            userAccount.getRole(),
+            userAccount.isEnabled(),
+            userAccount.getDisplayName(),
+            userAccount.getProfileImageUrl()
+        );
     }
 }

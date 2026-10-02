@@ -13,6 +13,7 @@ function assessment(
     title: "Assessment",
     instructions: "",
     passingScore: 70,
+    weekNumber: null,
     durationMinutes: 60,
     attemptLimit: 1,
     availableFrom: null,

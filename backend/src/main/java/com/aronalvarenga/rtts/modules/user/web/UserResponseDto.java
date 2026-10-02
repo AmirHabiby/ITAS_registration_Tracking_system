@@ -8,6 +8,7 @@ public record UserResponseDto(
     String username,
     UserRole role,
     boolean enabled,
-    String displayName
+    String displayName,
+    String profileImageUrl
 ) {
 }

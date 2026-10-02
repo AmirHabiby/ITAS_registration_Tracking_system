@@ -21,9 +21,12 @@ import com.aronalvarenga.rtts.modules.assessment.web.InstituteGradingQueueItemDt
 import com.aronalvarenga.rtts.modules.assessment.web.InstituteCompletedAttemptDto;
 import com.aronalvarenga.rtts.modules.assessment.web.InstituteWrittenGradingDto;
 import com.aronalvarenga.rtts.modules.assessment.web.WrittenQuestionGradeRequest;
+import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentRepository;
+import com.aronalvarenga.rtts.modules.enrollments.domain.EnrollmentStatus;
 import com.aronalvarenga.rtts.modules.institutes.domain.TrainingInstituteRepository;
 import com.aronalvarenga.rtts.modules.representatives.domain.Representative;
 import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeRepository;
+import com.aronalvarenga.rtts.modules.representatives.domain.RepresentativeStatus;
 import com.aronalvarenga.rtts.modules.trainings.domain.Training;
 import com.aronalvarenga.rtts.modules.trainings.domain.TrainingRepository;
 import java.math.BigDecimal;
@@ -54,6 +57,7 @@ public class AssessmentGradingService {
     private final TrainingInstituteRepository instituteRepository;
     private final TrainingRepository trainingRepository;
     private final RepresentativeRepository representativeRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final Clock clock;
 
     public AssessmentGradingService(
@@ -66,6 +70,7 @@ public class AssessmentGradingService {
         TrainingInstituteRepository instituteRepository,
         TrainingRepository trainingRepository,
         RepresentativeRepository representativeRepository,
+        EnrollmentRepository enrollmentRepository,
         Clock clock
     ) {
         this.attemptRepository = attemptRepository;
@@ -77,6 +82,7 @@ public class AssessmentGradingService {
         this.instituteRepository = instituteRepository;
         this.trainingRepository = trainingRepository;
         this.representativeRepository = representativeRepository;
+        this.enrollmentRepository = enrollmentRepository;
         this.clock = clock;
     }
 
@@ -301,6 +307,7 @@ public class AssessmentGradingService {
             .findByAttempt_IdAndResult_Id(attemptId, finalResult.getId())
             .orElse(null);
         if (priorRelease != null) {
+            markTrainedAfterPassingFinal(attempt, finalResult, priorRelease.getReleasedAt());
             return toDto(attempt, finalResult, priorRelease.getReleasedAt());
         }
         UserAccount releaser = authorizeGrader(releaserUserId);
@@ -311,7 +318,32 @@ public class AssessmentGradingService {
             releaser,
             releasedAt,
             Math.toIntExact(releaseRepository.countByAttempt_Id(attemptId) + 1)));
+        markTrainedAfterPassingFinal(attempt, finalResult, releasedAt);
         return toDto(attempt, finalResult, releasedAt);
+    }
+
+    private void markTrainedAfterPassingFinal(
+        AssessmentAttempt attempt,
+        AssessmentResultRecord result,
+        Instant assessedAt
+    ) {
+        if (attempt.getAssessment().getWeekNumber() != null || !result.isPassed()) {
+            return;
+        }
+        var enrollment = attempt.getEnrollment();
+        enrollment.setStatus(EnrollmentStatus.COMPLETED);
+        enrollment.setAssessmentScore(result.getScorePercent());
+        enrollment.setPassed(true);
+        enrollment.setAssessmentNote(attempt.getAssessment().getTitle());
+        enrollment.setAssessedAt(assessedAt);
+        enrollmentRepository.save(enrollment);
+
+        Representative representative = representativeRepository.findById(enrollment.getRepresentativeId())
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Representative profile not found for this enrollment"));
+        representative.setStatus(RepresentativeStatus.TRAINED);
+        representativeRepository.save(representative);
     }
 
     @Transactional(readOnly = true)

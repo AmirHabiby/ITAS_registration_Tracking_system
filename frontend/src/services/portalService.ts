@@ -160,6 +160,15 @@ export type RepresentativeTrainingProgress = {
   completedCount: number;
   totalCount: number;
   percentage: number;
+  weeks: {
+    weekNumber: number;
+    assessmentId: string | null;
+    assessmentTitle: string | null;
+    passingScore: number | null;
+    materialsCompleted: boolean;
+    quizPassed: boolean;
+    unlocked: boolean;
+  }[];
 };
 
 export type SystemAnnouncement = {
@@ -221,10 +230,58 @@ export const portalService = {
   listUsers: () => apiClient.get<User[]>('/api/admin/users'),
   setUserEnabled: (id: string, enabled: boolean) =>
     apiClient.patch<User>(`/api/admin/users/${id}/${enabled ? 'activate' : 'deactivate'}`),
-  createRepresentative: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/representatives', body),
-  createDelegator: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/delegators', body),
-  createInstitute: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/training-institutes', body),
-  createFirm: (body: Record<string, unknown>) => apiClient.post<User>('/api/admin/firms', body),
+  createRepresentative: (body: Record<string, unknown>, image?: File) => {
+    const formData = new FormData();
+    formData.append('request', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.post<User>('/api/admin/representatives', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  updateRepresentativeProfile: (fullName: string, image?: File) => {
+    const formData = new FormData();
+    formData.append('profile', new Blob([JSON.stringify({ fullName })], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.patch<User>('/api/representatives/me/profile', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  getRepresentativeProfile: () =>
+    apiClient.get<{ fullName: string }>('/api/representatives/me/profile'),
+  getOwnProfile: () =>
+    apiClient.get<{ fullName: string }>('/api/profile/me'),
+  updateOwnProfile: (fullName: string, image?: File) => {
+    const formData = new FormData();
+    formData.append('profile', new Blob([JSON.stringify({ fullName })], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.patch<User>('/api/profile/me', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  createDelegator: (body: Record<string, unknown>, image?: File) => {
+    const formData = new FormData();
+    formData.append('request', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.post<User>('/api/admin/delegators', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  createInstitute: (body: Record<string, unknown>, image?: File) => {
+    const formData = new FormData();
+    formData.append('request', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.post<User>('/api/admin/training-institutes', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  createFirm: (body: Record<string, unknown>, image?: File) => {
+    const formData = new FormData();
+    formData.append('request', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    if (image) formData.append('image', image);
+    return apiClient.post<User>('/api/admin/firms', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   listAdminFirms: () => apiClient.get<Firm[]>('/api/admin/firms'),
   listInstitutes: () => apiClient.get<Institute[]>('/api/institutes'),
   createAdminTraining: (body: {
